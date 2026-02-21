@@ -17,9 +17,7 @@ class FlightService(BaseAmadeusClient):
                 price = float(offer["price"]["grandTotal"])
                 currency = offer["price"]["currency"]
                 
-                itinerary = offer["itineraries"][0]
-                duration = itinerary["duration"].replace("PT", "")
-                segments = itinerary["segments"]
+                duration = offer["itineraries"][0]["duration"].replace("PT", "")
                 
                 main_carrier_code = offer["validatingAirlineCodes"][0]
                 main_carrier_name = carriers_dict.get(main_carrier_code, main_carrier_code)
@@ -28,19 +26,20 @@ class FlightService(BaseAmadeusClient):
                 cabin_class = first_segment_details.get("cabin", "UNKNOWN")
 
                 clean_segments = []
-                for seg in segments:
-                    seg_carrier_code = seg["carrierCode"]
-                    seg_carrier_name = carriers_dict.get(seg_carrier_code, seg_carrier_code)
-                    
-                    clean_segments.append(FlightSegment(
-                        departure_airport=seg["departure"]["iataCode"],
-                        departure_time=seg["departure"]["at"],
-                        arrival_airport=seg["arrival"]["iataCode"],
-                        arrival_time=seg["arrival"]["at"],
-                        carrier_code=seg_carrier_code,
-                        carrier_name=seg_carrier_name,  
-                        flight_number=seg["number"]
-                    ))
+                for itinerary in offer["itineraries"]:
+                    for seg in itinerary["segments"]:
+                        seg_carrier_code = seg["carrierCode"]
+                        seg_carrier_name = carriers_dict.get(seg_carrier_code, seg_carrier_code)
+                        
+                        clean_segments.append(FlightSegment(
+                            departure_airport=seg["departure"]["iataCode"],
+                            departure_time=seg["departure"]["at"],
+                            arrival_airport=seg["arrival"]["iataCode"],
+                            arrival_time=seg["arrival"]["at"],
+                            carrier_code=seg_carrier_code,
+                            carrier_name=seg_carrier_name,  
+                            flight_number=seg["number"]
+                        ))
 
                 flight_obj = FlightOffer(
                     id=offer["id"],
@@ -50,7 +49,7 @@ class FlightService(BaseAmadeusClient):
                     airline_name=main_carrier_name,    
                     cabin_class=cabin_class,        
                     duration=duration,
-                    stops=len(segments) - 1,
+                    stops=len(clean_segments) - len(offer["itineraries"]),
                     segments=clean_segments
                 )
                 clean_results.append(flight_obj)
@@ -61,8 +60,10 @@ class FlightService(BaseAmadeusClient):
         
         return clean_results
 
-    async def search_flights(self, origin: str, destination: str, date: str):
-        cache_key = f"flight_search:{origin}:{destination}:{date}"
+    async def search_flights(self, origin: str, destination: str, date: str, return_date: str, adults: int, travel_class: str = "ECONOMY", children: int = 0):
+        
+        cache_key = f"flight_search:{origin}:{destination}:{date}:{return_date}:{adults}:{travel_class}:{children}"
+        
         cached_data = get_cache(cache_key)
         if cached_data:
             return cached_data
@@ -73,18 +74,24 @@ class FlightService(BaseAmadeusClient):
 
         url = f"{self.base_url}/v2/shopping/flight-offers"
         headers = {"Authorization": f"Bearer {token}"}
+        
         params = {
             "originLocationCode": origin,
             "destinationLocationCode": destination,
             "departureDate": date,
-            "adults": 1,
+            "returnDate": return_date, 
+            "adults": adults,
+            "travelClass": travel_class.upper(),
             "max": 20,  
             "currencyCode": "USD"
         }
 
+        if children > 0:
+            params["children"] = children
+
         async with httpx.AsyncClient() as client:
             try:
-                print(f"✈️ Calling Amadeus API for: {origin} -> {destination}")
+                print(f"✈️ Calling Amadeus: {origin}->{destination} | Out: {date} | Return: {return_date} | Adults: {adults}")
                 response = await client.get(url, headers=headers, params=params, timeout=30.0)
                 if response.status_code != 200:
                     return {"error": response.text}
@@ -99,4 +106,5 @@ class FlightService(BaseAmadeusClient):
             except httpx.ReadTimeout:
                 return {"error": "Amadeus API timed out"}
 
+# Singleton instance
 flight_service = FlightService()
