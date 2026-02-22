@@ -6,17 +6,20 @@ class FlightSegment(BaseModel):
     departure_time: str
     arrival_airport: str
     arrival_time: str
-    carrier_code: str  
-    carrier_name: str  
+    carrier_code: str
+    carrier_name: str
     flight_number: str
+
+class FlightItinerary(BaseModel):
+    duration: str
+    stops: int
+    segments: List[FlightSegment]
 
 class FlightOffer(BaseModel):
     id: str
     price: float
     currency: str
-    airline_code: str  
-    airline_name: str  
-    cabin_class: str   
-    duration: str
-    stops: int
-    segments: List[FlightSegment]
+    airline_code: str
+    airline_name: str
+    cabin_class: str
+    itineraries: List[FlightItinerary]  

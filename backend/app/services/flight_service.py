@@ -17,16 +17,18 @@ class FlightService(BaseAmadeusClient):
                 price = float(offer["price"]["grandTotal"])
                 currency = offer["price"]["currency"]
                 
-                duration = offer["itineraries"][0]["duration"].replace("PT", "")
-                
                 main_carrier_code = offer["validatingAirlineCodes"][0]
                 main_carrier_name = carriers_dict.get(main_carrier_code, main_carrier_code)
 
                 first_segment_details = offer["travelerPricings"][0]["fareDetailsBySegment"][0]
                 cabin_class = first_segment_details.get("cabin", "UNKNOWN")
 
-                clean_segments = []
+                clean_itineraries = []
+                
                 for itinerary in offer["itineraries"]:
+                    itin_duration = itinerary["duration"].replace("PT", "")
+                    clean_segments = []
+                    
                     for seg in itinerary["segments"]:
                         seg_carrier_code = seg["carrierCode"]
                         seg_carrier_name = carriers_dict.get(seg_carrier_code, seg_carrier_code)
@@ -40,6 +42,13 @@ class FlightService(BaseAmadeusClient):
                             carrier_name=seg_carrier_name,  
                             flight_number=seg["number"]
                         ))
+                    
+                    from app.schemas.flight import FlightItinerary 
+                    clean_itineraries.append(FlightItinerary(
+                        duration=itin_duration,
+                        stops=len(clean_segments) - 1,
+                        segments=clean_segments
+                    ))
 
                 flight_obj = FlightOffer(
                     id=offer["id"],
@@ -48,9 +57,7 @@ class FlightService(BaseAmadeusClient):
                     airline_code=main_carrier_code,
                     airline_name=main_carrier_name,    
                     cabin_class=cabin_class,        
-                    duration=duration,
-                    stops=len(clean_segments) - len(offer["itineraries"]),
-                    segments=clean_segments
+                    itineraries=clean_itineraries 
                 )
                 clean_results.append(flight_obj)
 
@@ -106,5 +113,4 @@ class FlightService(BaseAmadeusClient):
             except httpx.ReadTimeout:
                 return {"error": "Amadeus API timed out"}
 
-# Singleton instance
 flight_service = FlightService()

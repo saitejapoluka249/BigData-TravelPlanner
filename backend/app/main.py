@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import flights, locations
+from app.api.v1.endpoints import flights, locations, hotels
 
 def get_application():
     _app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
@@ -16,6 +16,7 @@ def get_application():
 
     _app.include_router(flights.router, prefix="/api/v1/flights", tags=["flights"])
     _app.include_router(locations.router, prefix="/api/v1/locations", tags=["locations"])
+    _app.include_router(hotels.router, prefix="/api/v1/hotels", tags=["hotels"])
 
     return _app
 
