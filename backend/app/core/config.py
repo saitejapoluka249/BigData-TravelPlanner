@@ -17,13 +17,11 @@ class Settings(BaseSettings):
         "http://localhost:8000",  
     ]
 
-    # External API Keys
     AMADEUS_CLIENT_ID: str = ""
     AMADEUS_CLIENT_SECRET: str = ""
     WEATHER_API_KEY: str = ""
     OPENSTREETMAP_URL: str = "https://nominatim.openstreetmap.org"
 
-    # Database & Cache
     REDIS_URL: str = "redis://localhost:6379/0"
     POSTGRES_URL: str = "postgresql://user:password@localhost:5432/traveldb"
 
@@ -31,5 +29,4 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = True
 
-# Create a global settings object
 settings = Settings()
