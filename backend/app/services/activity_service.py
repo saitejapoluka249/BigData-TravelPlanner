@@ -28,7 +28,6 @@ class ActivityService(BaseAmadeusClient):
         if not token:
             return {"error": "Authentication Failed"}
 
-        # Amadeus Tours and Activities API
         url = f"{self.base_url}/v1/shopping/activities"
         headers = {"Authorization": f"Bearer {token}"}
         params = {
@@ -49,16 +48,13 @@ class ActivityService(BaseAmadeusClient):
                 clean_activities = []
                 
                 for item in raw_data:
-                    # Extract the first picture if available
                     pictures = item.get("pictures", [])
                     pic_url = pictures[0] if pictures else None
                     
-                    # Extract Price
                     price_info = item.get("price", {})
                     price_amount = float(price_info.get("amount", 0.0))
                     currency = price_info.get("currencyCode", "USD")
 
-                    # Calculate distance from the destination center to sort later
                     activity_lat = item.get("geoCode", {}).get("latitude")
                     activity_lon = item.get("geoCode", {}).get("longitude")
                     dist = 999.0
@@ -78,15 +74,11 @@ class ActivityService(BaseAmadeusClient):
                     )
                     clean_activities.append(activity_obj)
                     
-                    # REQUIREMENT: Permanently store id, name, desc, geocode, price, and picture
-                    # We use None for expire_seconds so it stays in Redis forever
                     set_cache(f"activity_info:{activity_obj.id}", activity_obj.model_dump(), expire_seconds=None)
 
-                # REQUIREMENT: Sort in ascending order of distance
                 clean_activities.sort(key=lambda x: x.distance_km)
 
                 if clean_activities:
-                    # Cache the localized list for 1 day
                     set_cache(cache_key, [a.model_dump() for a in clean_activities], expire_seconds=86400)
                 
                 return clean_activities

@@ -10,4 +10,4 @@ class Activity(BaseModel):
     currency: Optional[str] = None
     picture_url: Optional[str] = None
     minimum_duration: Optional[str] = None
-    distance_km: Optional[float] = None  # Used for sorting
+    distance_km: Optional[float] = None  

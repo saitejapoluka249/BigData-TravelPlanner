@@ -2,11 +2,10 @@ import httpx
 from datetime import datetime, timedelta
 from collections import defaultdict, Counter
 from app.schemas.weather import WeatherDay, WeatherSummary
-from app.core.config import settings  # <-- NEW: Import your settings
+from app.core.config import settings  
 
 class WeatherService:
     def __init__(self):
-        # NEW: Securely pull the API key from your .env file
         self.api_key = settings.WEATHER_API_KEY
 
     async def get_weather_for_trip(self, lat: float, lon: float, check_in_date: str, check_out_date: str):
@@ -16,12 +15,11 @@ class WeatherService:
 
         days_until_trip = (check_in - now).days
 
-        # 1. Always call the Forecast API first to get the City ID
         forecast_url = "https://pro.openweathermap.org/data/2.5/forecast/climate"
         forecast_params = {
             "lat": lat, "lon": lon,
             "appid": self.api_key,
-            "units": "imperial", # Use Fahrenheit for USA trips
+            "units": "imperial", 
             "cnt": 30
         }
 
@@ -34,22 +32,18 @@ class WeatherService:
                 
                 forecast_data = forecast_response.json()
                 
-                # Extract the dynamic City ID
                 city_id = forecast_data.get("city", {}).get("id")
                 if not city_id:
                     return {"error": "Could not extract City ID from OpenWeather."}
 
-                # PLAN A: If trip is within 30 days, parse the 30-day forecast!
                 if days_until_trip <= 30:
                     return self._parse_climate_data(forecast_data, check_in_date, check_out_date)
 
-                # PLAN B: Trip is > 30 days away. Use Historical Data by City ID!
                 print(f"🕰️ Trip is > 30 days away. Fetching historical data using City ID: {city_id}")
                 historical_check_in = check_in - timedelta(days=365)
                 historical_check_out = check_out - timedelta(days=365)
 
                 start_unix = int(historical_check_in.timestamp())
-                # Add 1 day to checkout to ensure full 24 hours of the last day
                 end_unix = int((historical_check_out + timedelta(days=1)).timestamp())
 
                 history_url = "https://history.openweathermap.org/data/2.5/history/city"

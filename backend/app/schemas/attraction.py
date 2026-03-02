@@ -9,5 +9,5 @@ class Attraction(BaseModel):
     address: str          
     website: Optional[str] = None
     opening_hours: Optional[str] = None
-    latitude: float   # NEW: Added for map rendering
-    longitude: float  # NEW: Added for map rendering
+    latitude: float   
+    longitude: float  

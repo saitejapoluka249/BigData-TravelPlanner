@@ -16,7 +16,6 @@ class HotelService(BaseAmadeusClient):
         if not token:
             return {"error": "Authentication Failed"}
 
-        # --- PART 1: Get Reference Data (Hotels that physically exist) ---
         ref_url = f"{self.base_url}/v1/reference-data/locations/hotels/by-geocode"
         headers = {"Authorization": f"Bearer {token}"}
         ref_params = {"latitude": lat, "longitude": lon, "radius": radius, "radiusUnit": "KM"}
@@ -30,21 +29,17 @@ class HotelService(BaseAmadeusClient):
                 
                 raw_hotels = ref_response.json().get("data", [])
                 
-                # Sort by distance and take the closest 50
                 raw_hotels.sort(key=lambda x: x.get("distance", {}).get("value", 999))
                 closest_50_hotels = raw_hotels[:50]
                 
                 if not closest_50_hotels:
                     return []
 
-                # Extract IDs for the bulk check
                 hotel_ids = [h.get("hotelId") for h in closest_50_hotels]
                 hotel_ids_string = ",".join(hotel_ids)
 
-                # NEW: Create a map of Hotel IDs to their Addresses from the Reference Data
                 address_map = {h.get("hotelId"): h.get("address") for h in closest_50_hotels}
 
-                # --- PART 2: Bulk Check Availability (Pre-Filtering) ---
                 offer_url = f"{self.base_url}/v3/shopping/hotel-offers"
                 offer_params = {
                     "hotelIds": hotel_ids_string,
@@ -77,11 +72,10 @@ class HotelService(BaseAmadeusClient):
                                 currency=best_offer["price"]["currency"],
                                 latitude=item["hotel"].get("latitude"),
                                 longitude=item["hotel"].get("longitude"),
-                                address=address_map.get(h_id)  # NEW: Inject the address here!
+                                address=address_map.get(h_id)  
                             )
                             set_cache(f"hotel_offer:{h_id}:{check_in_date}:{check_out_date}:{adults}", offer_obj.model_dump(), expire_seconds=1800)
 
-                # --- PART 3: Filter and Return ---
                 clean_available_hotels = []
                 for hotel in closest_50_hotels:
                     if hotel.get("hotelId") in available_hotel_ids:

@@ -1,14 +1,12 @@
 import httpx
 from app.schemas.attraction import Attraction
-from app.core.cache import get_cache, set_cache  # NEW: Imported cache functions
+from app.core.cache import get_cache, set_cache  
 
 class AttractionService:
     
     async def get_attractions(self, lat: float, lon: float, radius_miles: int = 30):
-        # NEW: Create a unique cache key based on the coordinates and radius
         cache_key = f"attractions:{round(lat, 2)}:{round(lon, 2)}:{radius_miles}"
         
-        # NEW: Check if we already have this data in Redis
         cached_data = get_cache(cache_key)
         if cached_data:
             print(f"⚡ INSTANT CACHE HIT for Attractions near {lat}, {lon}")
@@ -88,7 +86,6 @@ class AttractionService:
                     
                 clean_attractions.sort(key=lambda x: (x.category, x.name))
                 
-                # NEW: Save the formatted list to Redis for 24 hours (86400 seconds)
                 if clean_attractions:
                     set_cache(cache_key, [a.model_dump() for a in clean_attractions], expire_seconds=86400)
                     
