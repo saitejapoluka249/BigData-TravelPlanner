@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    container_name: travel-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      # Browser uses localhost to reach your machine's port 8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+      # Internal Next.js server uses the network alias to reach the backend
+      - BACKEND_URL=http://travel-backend:8000/api/v1
+    networks:
+      - travel-app-network
+
+networks:
+  travel-app-network:
+    external: true
