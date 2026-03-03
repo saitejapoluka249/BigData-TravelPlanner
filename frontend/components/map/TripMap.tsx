@@ -5,6 +5,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as pmtiles from 'pmtiles';
 import Cookies from 'js-cookie';
+import * as protomaps_basemaps from '@protomaps/basemaps';
 import { fetchOsmInterests } from '../../services/api';
 
 interface TripMapProps {
@@ -30,7 +31,7 @@ export default function TripMap({ mapData }: TripMapProps) {
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const [pois, setPois] = useState<any[]>([]);
 
-  // 1. Initialize MapLibre with PMTiles support
+  // 1. Initialize MapLibre with PMTiles support and Protomaps Layers
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
@@ -42,42 +43,58 @@ export default function TripMap({ mapData }: TripMapProps) {
     const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY || 'YOUR_MAPTILER_KEY';
     const tomtom_api_key = process.env.NEXT_PUBLIC_TOMTOM_KEY || 'YOUR_TOMTOM_KEY';
 
+    // 🛠️ FIX: Generate and sanitize layers to prevent "color expected, undefined found"
+    const rawLayers = protomaps_basemaps.layers("protomaps", protomaps_basemaps.namedFlavor("light"), {lang:"en"});
+    const validatedLayers = rawLayers.map((layer: any) => {
+      // Specifically target line layers which often lack colors in new builds
+      if (layer.type === 'line' && layer.paint && typeof layer.paint['line-color'] === 'undefined') {
+        return {
+          ...layer,
+          paint: { ...layer.paint, 'line-color': '#cccccc' } // Fallback light grey
+        };
+      }
+      return layer;
+    });
+
     // =========================================================================
     // 🌍 THE ULTIMATE MAP THEME DICTIONARY
     // =========================================================================
     const STYLES: any = {
-      // --- PROTOMAPS (New Build Integrated) ---
+      // --- PROTOMAPS (New Build Integrated with Icons & Fixes) ---
       protomapsBuild: {
         version: 8,
+        name: "Protomaps Latest Build",
+        // Sprite and Glyphs are required for POI icons and text
+        sprite: "https://protomaps.github.io/basemaps-assets/sprites/v4/light",
+        glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
         sources: {
           protomaps: {
             type: 'vector',
-            url: 'pmtiles://https://build.protomaps.com/20260303.pmtiles', // Your new build
-            attribution: '© OpenStreetMap'
+            url: 'pmtiles://https://build.protomaps.com/20260303.pmtiles', 
+            attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>'
           }
         },
-        layers: [] // Requires a full style layers definition to render
+        layers: validatedLayers
       },
-      protomapsLight: `https://api.protomaps.com/styles/v2/light.json?key=${protomapsKey}`,
+      // protomapsLight: `https://api.protomaps.com/styles/v2/light.json?key=${protomapsKey}`,
 
       // --- CARTO (Active) ---
-      cartoVoyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', 
+      // cartoVoyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', 
 
       // --- ENTERPRISE & OTHERS ---
-      tomtomBasic: `https://api.tomtom.com/map/1/style/22/basic_main.json?key=${tomtom_api_key}`,
-      mapTilerOsmVector: `https://api.maptiler.com/maps/openstreetmap/style.json?key=${maptilerKey}`,
+      // tomtomBasic: `https://api.tomtom.com/map/1/style/22/basic_main.json?key=${tomtom_api_key}`,
+      // mapTilerOsmVector: `https://api.maptiler.com/maps/openstreetmap/style.json?key=${maptilerKey}`,
     };
 
     // ⬇️ ACTIVE TILE ⬇️
-    const ACTIVE_STYLE = STYLES.protomapsLight;
+    const ACTIVE_STYLE = STYLES.protomapsBuild;
     // ⬆️ =======================================================================
 
     mapRef.current = new maplibregl.Map({
       container: mapContainer.current,
       style: ACTIVE_STYLE,
       center: [-105.2705, 40.0150], // Default Boulder coords
-      zoom: 12,
-      attributionControl: false
+      zoom: 12
     });
 
     mapRef.current.addControl(new maplibregl.NavigationControl(), 'top-right');
