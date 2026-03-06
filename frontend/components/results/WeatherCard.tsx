@@ -1,21 +1,25 @@
-export default function WeatherCard({ weather }: { weather: any[] }) {
-  // Mock total cost calculation for the UI based on the wireframe
-  const estimatedCost = "$950";
+// larry6683/big-data-project-travel-app/frontend/components/results/WeatherCard.tsx
+
+export default function WeatherCard({ weather }: { weather: any }) {
+  if (!weather || (!weather.forecast && !weather.daily)) {
+    return <div className="text-gray-500 italic">Weather data is currently unavailable for these dates.</div>;
+  }
+
+  const days = weather.forecast || weather.daily || [];
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 h-64 flex flex-col justify-between">
-      <div>
-        <h3 className="font-bold text-gray-800 mb-1 text-sm">Trip Summary & Weather</h3>
-        <p className="text-xs text-gray-600 mb-4">Estimated Total Cost: ~{estimatedCost} (Budget)</p>
-      </div>
-      
-      <div className="flex justify-between mt-auto">
-        {weather?.slice(0, 5).map((day, idx) => (
-          <div key={idx} className="flex flex-col items-center text-xs">
-            <span className="font-medium mb-1">{day.dayOfWeek}</span>
-            <span className="text-xl mb-1">{day.condition === 'Sunny' ? '☀️' : day.condition === 'Cloudy' ? '☁️' : '🌧️'}</span>
-            <span className="font-semibold">{day.high}°</span>
-            <span className="text-gray-500">{day.low}°</span>
+    <div>
+      <h3 className="text-xl font-bold mb-4 text-gray-800">⛅ Trip Forecast</h3>
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {days.map((day: any, idx: number) => (
+          <div key={idx} className="min-w-[120px] border border-gray-200 rounded-lg p-4 text-center bg-blue-50/30">
+            <p className="font-bold text-sm text-gray-700 mb-2">{day.date || day.day}</p>
+            <div className="text-3xl mb-2">{day.icon || '🌤️'}</div>
+            <p className="text-xs text-gray-500 capitalize mb-1">{day.description || day.condition}</p>
+            <div className="flex justify-center gap-2 text-sm">
+              <span className="font-bold text-red-500">{day.temp_max || day.high}°</span>
+              <span className="font-bold text-blue-500">{day.temp_min || day.low}°</span>
+            </div>
           </div>
         ))}
       </div>

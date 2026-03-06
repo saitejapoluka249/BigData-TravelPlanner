@@ -6,7 +6,6 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import * as pmtiles from 'pmtiles';
 import Cookies from 'js-cookie';
 import * as protomaps_basemaps from '@protomaps/basemaps';
-import { fetchOsmInterests } from '../../services/api';
 
 interface TripMapProps {
   mapData?: any; 
@@ -14,89 +13,61 @@ interface TripMapProps {
   stays?: any[];
 }
 
-// Maps Sidebar UI selection IDs to exact OSM tag search strings
-const CATEGORY_TAG_MAP: Record<string, string[]> = {
-  amenity: ['amenity=restaurant', 'amenity=cafe', 'amenity=pub', 'amenity=bank', 'amenity=hospital', 'amenity=school', 'amenity=fuel', 'amenity=parking'],
-  aviation: ['aeroway=aerodrome', 'aeroway=heliport', 'aeroway=gate', 'aeroway=terminal', 'aeroway=runway'],
-  tourism: ['tourism=hotel', 'tourism=museum', 'tourism=attraction', 'tourism=viewpoint', 'tourism=artwork', 'tourism=zoo'],
-  leisure: ['leisure=park', 'leisure=swimming_pool', 'leisure=stadium', 'leisure=playground', 'leisure=golf_course'],
-  shop: ['shop=supermarket', 'shop=convenience', 'shop=clothes', 'shop=bicycle', 'shop=electronics'],
-  historic: ['historic=monument', 'historic=memorial', 'historic=castle', 'historic=ruins', 'historic=archaeological_site'],
-  transit: ['highway=bus_stop', 'highway=cycleway', 'highway=footway']
-};
-
 export default function TripMap({ mapData }: TripMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
-  const [pois, setPois] = useState<any[]>([]);
+  
+  const [radiusValue, setRadiusValue] = useState<number>(10);
+
+  // Helper to dynamically calculate zoom based on radius miles
+  const calculateZoomFromRadius = (miles: number) => {
+    return 14.5 - Math.log2(Math.max(1, miles)); 
+  };
 
   // 1. Initialize MapLibre with PMTiles support and Protomaps Layers
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
-    // Register the PMTiles protocol
     const protocol = new pmtiles.Protocol();
     maplibregl.addProtocol('pmtiles', protocol.tile);
 
-    const protomapsKey = process.env.NEXT_PUBLIC_PROTOMAPS_KEY || 'YOUR_PROTOMAPS_KEY';
-    const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY || 'YOUR_MAPTILER_KEY';
-    const tomtom_api_key = process.env.NEXT_PUBLIC_TOMTOM_KEY || 'YOUR_TOMTOM_KEY';
-
-    // 🛠️ FIX: Generate and sanitize layers to prevent "color expected, undefined found"
     const rawLayers = protomaps_basemaps.layers("protomaps", protomaps_basemaps.namedFlavor("light"), {lang:"en"});
     const validatedLayers = rawLayers.map((layer: any) => {
-      // Specifically target line layers which often lack colors in new builds
       if (layer.type === 'line' && layer.paint && typeof layer.paint['line-color'] === 'undefined') {
-        return {
-          ...layer,
-          paint: { ...layer.paint, 'line-color': '#cccccc' } // Fallback light grey
-        };
+        return { ...layer, paint: { ...layer.paint, 'line-color': '#cccccc' } };
       }
       return layer;
     });
 
-    // =========================================================================
-    // 🌍 THE ULTIMATE MAP THEME DICTIONARY
-    // =========================================================================
     const STYLES: any = {
-      // --- PROTOMAPS (New Build Integrated with Icons & Fixes) ---
       protomapsBuild: {
         version: 8,
         name: "Protomaps Latest Build",
-        // Sprite and Glyphs are required for POI icons and text
         sprite: "https://protomaps.github.io/basemaps-assets/sprites/v4/light",
         glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
         sources: {
           protomaps: {
             type: 'vector',
             url: 'pmtiles://https://build.protomaps.com/20260303.pmtiles', 
-            attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>'
+            attribution: '<a href="https://protomaps.com" target="_blank">Protomaps |</a> <a href="https://openstreetmap.org">OpenStreetMap ©</a>'
           }
         },
         layers: validatedLayers
-      },
-      // protomapsLight: `https://api.protomaps.com/styles/v2/light.json?key=${protomapsKey}`,
-
-      // --- CARTO (Active) ---
-      // cartoVoyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', 
-
-      // --- ENTERPRISE & OTHERS ---
-      // tomtomBasic: `https://api.tomtom.com/map/1/style/22/basic_main.json?key=${tomtom_api_key}`,
-      // mapTilerOsmVector: `https://api.maptiler.com/maps/openstreetmap/style.json?key=${maptilerKey}`,
+      }
     };
-
-    // ⬇️ ACTIVE TILE ⬇️
-    const ACTIVE_STYLE = STYLES.protomapsBuild;
-    // ⬆️ =======================================================================
 
     mapRef.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: ACTIVE_STYLE,
-      center: [-105.2705, 40.0150], // Default Boulder coords
-      zoom: 12
+      style: STYLES.protomapsBuild,
+      center: [-105.2705, 40.0150], 
+      zoom: 15,
+      attributionControl: false 
     });
 
+    mapRef.current.addControl(
+      new maplibregl.AttributionControl({ compact: false }),
+      'bottom-right'
+    );
     mapRef.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     return () => {
@@ -106,7 +77,7 @@ export default function TripMap({ mapData }: TripMapProps) {
     };
   }, []);
 
-  // 2. Fly to Location & Fetch POIs based on search_state cookie
+  // 2. Initial Data Sync
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -115,25 +86,19 @@ export default function TripMap({ mapData }: TripMapProps) {
       if (!cookieData) return;
 
       try {
-        const { destination, radius, interests } = JSON.parse(cookieData);
+        const { destination, radius } = JSON.parse(cookieData);
+        
+        // Initialize slider state safely between 1 and 25
+        const initialRadius = radius ? Math.max(1, Math.min(25, radius)) : 10;
+        setRadiusValue(initialRadius);
         
         if (destination?.lat && destination?.lon) {
-          // Smoothly fly to the destination
           mapRef.current!.flyTo({
             center: [destination.lon, destination.lat],
-            zoom: radius > 15 ? 11 : 13,
+            zoom: calculateZoomFromRadius(initialRadius),
             essential: true,
             duration: 2000 
           });
-
-          // Fetch POIs around that geocode
-          if (interests && interests.length > 0) {
-            const tagsToQuery = interests.flatMap((id: string) => CATEGORY_TAG_MAP[id] || []);
-            const elements = await fetchOsmInterests(tagsToQuery, destination.lat, destination.lon, radius);
-            setPois(elements);
-          } else {
-            setPois([]);
-          }
         }
       } catch (err) {
         console.error("Map sync error:", err);
@@ -143,46 +108,78 @@ export default function TripMap({ mapData }: TripMapProps) {
     syncWithSearchState();
   }, [mapData]); 
 
-  // 3. Render Custom Category Markers
-  useEffect(() => {
-    if (!mapRef.current) return;
+  // Handle immediate visual slider drag (Smooth Zooming)
+  const handleRadiusSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+    setRadiusValue(val);
 
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
+    const cookieData = Cookies.get("search_state");
+    if (!cookieData || !mapRef.current) return;
+    
+    try {
+      const state = JSON.parse(cookieData);
+      if (state.destination?.lat && state.destination?.lon) {
+        mapRef.current.flyTo({
+          center: [state.destination.lon, state.destination.lat],
+          zoom: calculateZoomFromRadius(val),
+          duration: 300, // Short duration for fast slider tracking
+          essential: true
+        });
+      }
+    } catch (e) {}
+  };
 
-    pois.forEach((poi) => {
-      const lat = poi.lat || poi.center?.lat;
-      const lon = poi.lon || poi.center?.lon;
-      if (!lat || !lon) return;
+  // Handle saving the state ONLY when slider drag is released
+  const handleRadiusDrop = () => {
+    const cookieData = Cookies.get("search_state");
+    if (!cookieData) return;
+    
+    try {
+      const state = JSON.parse(cookieData);
+      state.radius = radiusValue;
+      Cookies.set("search_state", JSON.stringify(state)); 
+    } catch (e) {
+      console.error("Failed to update cookie:", e);
+    }
+  };
 
-      const name = poi.tags?.name || 'Interesting Place';
-      const cat = poi.tags?.amenity || poi.tags?.tourism || poi.tags?.leisure || 'place';
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' }}>
       
-      const popupHtml = `
-        <div style="padding: 10px; font-family: sans-serif;">
-          <strong style="display: block; margin-bottom: 4px;">${name}</strong>
-          <span style="font-size: 11px; color: #666; text-transform: capitalize;">${cat.replace(/_/g, ' ')}</span>
-        </div>
-      `;
+      {/* Floating Radius Controller */}
+      <div style={{
+        position: 'absolute',
+        top: '16px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 10,
+        background: 'white',
+        padding: '5px 10px',
+        borderRadius: '30px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        border: '1px solid #e5e7eb'
+      }}>
+        <label style={{ fontSize: '10px', fontWeight: 600, color: '#374151', minWidth: '85px' }}>
+          Radius: {radiusValue} mi
+        </label>
+        <input 
+          type="range" 
+          min="1" 
+          max="31" 
+          step="2"
+          value={radiusValue} 
+          onChange={handleRadiusSlider}
+          onMouseUp={handleRadiusDrop}
+          onTouchEnd={handleRadiusDrop}
+          style={{ width: '150px', cursor: 'pointer', accentColor: '#2563eb' }}
+        />
+      </div>
 
-      const markerEl = document.createElement('div');
-      markerEl.style.cssText = `
-        width: 24px; height: 24px; background: #fff; 
-        border: 2px solid #2563eb; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        cursor: pointer;
-      `;
-      markerEl.innerHTML = poi.tags?.amenity ? '☕' : poi.tags?.tourism ? '📸' : '📍';
-
-      const marker = new maplibregl.Marker({ element: markerEl })
-        .setLngLat([lon, lat])
-        .setPopup(new maplibregl.Popup({ offset: 10 }).setHTML(popupHtml))
-        .addTo(mapRef.current!);
-
-      markersRef.current.push(marker);
-    });
-  }, [pois]);
-
-  return <div ref={mapContainer} style={{ width: '100%', height: '100%', borderRadius: '12px' }} />;
+      {/* Map Container */}
+      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+    </div>
+  );
 }

@@ -12,38 +12,13 @@ interface SidebarProps {
   loading?: boolean;
 }
 
-// Map the categories to OSM Overpass query definitions
 const INTEREST_CATEGORIES = [
-  { 
-    id: 'dining', 
-    label: '🍽️ Dining', 
-    query: 'nwr["amenity"~"^(restaurant|cafe|pub)$"]' 
-  },
-  { 
-    id: 'tourism', 
-    label: '📸 Tourism', 
-    query: 'nwr["tourism"~"^(hotel|museum|attraction|viewpoint|artwork|zoo)$"]' 
-  },
-  { 
-    id: 'leisure', 
-    label: '🌳 Leisure', 
-    query: 'nwr["leisure"~"^(park|swimming_pool|stadium|playground|golf_course)$"]' 
-  },
-  { 
-    id: 'shopping', 
-    label: '🛍️ Shopping', 
-    query: 'nwr["shop"="clothes"]' 
-  },
-  { 
-    id: 'historic', 
-    label: '🏛️ Historic', 
-    query: 'nwr["historic"~"^(monument|memorial|castle|ruins|archaeological_site)$"]' 
-  },
-  { 
-    id: 'transit_infrastructure', 
-    label: '🛣️ Transit', 
-    query: 'nwr["highway"~"^(residential|motorway|bus_stop|cycleway|footway)$"]; nwr["aeroway"="aerodrome"]' 
-  }
+  { id: 'amenity', label: '🍽️ Dining' },
+  { id: 'tourism', label: '📸 Tourism' },
+  { id: 'leisure', label: '🌳 Leisure' },
+  { id: 'shop', label: '🛍️ Shopping' },
+  { id: 'historic', label: '🏛️ Historic' },
+  { id: 'transit', label: '🛣️ Transit' }
 ];
 
 export default function Sidebar({ onSearch, loading }: SidebarProps) {
@@ -52,8 +27,9 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
   const [dates, setDates] = useState({ start: "", end: "" });
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [travelMode, setTravelMode] = useState<"fly" | "drive">("fly");
   const [budget, setBudget] = useState<"budget" | "luxury">("budget");
-  const [radius, setRadius] = useState(30);
+  const [radius, setRadius] = useState(10);
   const [interests, setInterests] = useState<string[]>([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
@@ -67,8 +43,9 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
         setDates({ start: parsed.startDate || "", end: parsed.endDate || "" });
         setAdults(parsed.adults || 2);
         setChildren(parsed.children || 0);
+        setTravelMode(parsed.travelMode || "fly");
         setBudget(parsed.budget || "budget");
-        setRadius(parsed.radius || 30);
+        setRadius(parsed.radius || 10);
         setInterests(parsed.interests || []);
       } catch (e) {
         console.error("Failed to parse existing search cookie", e);
@@ -88,9 +65,9 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
     return null;
   };
 
-  const handleInterestToggle = (query: string) => {
+  const handleInterestToggle = (id: string) => {
     setInterests(prev => 
-      prev.includes(query) ? prev.filter(item => item !== query) : [...prev, query]
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
 
@@ -101,7 +78,6 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
     }
     setIsGeocoding(true);
     
-    // Geocode both locations before submission
     const sourceCoords = await getCoordinates(source);
     const destCoords = await getCoordinates(destination);
     
@@ -120,15 +96,13 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
       numNights,
       adults,
       children,
+      travelMode,
       budget,
       radius,
       interests, 
       timestamp: new Date().toISOString(),
     };
     Cookies.set("search_state", JSON.stringify(searchState), { expires: 7 });
-    
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-    fetch(`${apiUrl}/locations/trending`, { method: "GET" }).catch(() => {});
     
     setIsGeocoding(false);
     onSearch(searchState);
@@ -169,7 +143,6 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
         color: "#ffffff"
       }}>
 
-        {/* Logo */}
         <div style={{ paddingBottom: "10px", borderBottom: "1px solid #e2e8f0" }}>
           <div style={{ fontSize: "18px", fontWeight: 800, color: "#ffffff", letterSpacing: "-0.3px", display: "flex", alignItems:"center", gap:"8px" }}>
             <div className="bg-blue-100 p-1.5 rounded-lg border border-blue-200"><Search size={16} className="text-blue-600" /></div>
@@ -178,31 +151,16 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
           <div style={{ fontSize: "11px", color: "#c2c2c2", marginTop: "4px" }}>Plan Your Trip</div>
         </div>
 
-        {/* Source City */}
         <div>
           <SbLabel>Departure From</SbLabel>
-          <LocationAutocomplete
-            placeholder="eg. NEW YORK, NY"
-            value={source}
-            onChange={setSource}
-            isDark={false}
-            showGPS={true}
-          />
+          <LocationAutocomplete placeholder="eg. NEW YORK, NY" value={source} onChange={setSource} isDark={false} showGPS={true} />
         </div>
 
-        {/* Destination City */}
         <div>
           <SbLabel>Destination To</SbLabel>
-          <LocationAutocomplete
-            placeholder="eg. LOS ANGELES, CA"
-            value={destination}
-            onChange={setDestination}
-            isDark={false}
-            showGPS={false}
-          />
+          <LocationAutocomplete placeholder="eg. LOS ANGELES, CA" value={destination} onChange={setDestination} isDark={false} showGPS={false} />
         </div>
 
-        {/* Travel Dates */}
         <div>
           <SbLabel>
             Travel Dates{" "}
@@ -214,18 +172,12 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
               { val: dates.end, key: "end" },
             ].map(({ val, key }) => (
               <input
-                key={key}
-                type="date"
-                value={val}
-                onChange={(e) => setDates({ ...dates, [key]: e.target.value })}
+                key={key} type="date" value={val} onChange={(e) => setDates({ ...dates, [key]: e.target.value })}
                 className="sb-input-date"
                 style={{
-                  width: "100%", padding: "10px 12px",
-                  fontFamily: "inherit", fontSize: "13px",
-                  background: "#fff", color: "#1a202c",
-                  border: "1.5px solid #e2e8f0", borderRadius: "10px",
-                  boxSizing: "border-box",
-                  cursor: "pointer",
+                  width: "100%", padding: "10px 12px", fontFamily: "inherit", fontSize: "13px",
+                  background: "#fff", color: "#1a202c", border: "1.5px solid #e2e8f0", borderRadius: "10px",
+                  boxSizing: "border-box", cursor: "pointer",
                 }}
               />
             ))}
@@ -233,19 +185,36 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
         </div>
 
         <div style={{ display: "flex", gap: "10px" }}>
-           {/* Adults */}
           <div style={{ flex: 1}}>
             <SbLabel>Adults</SbLabel>
             <SbCounter value={adults} min={1} max={9} onChange={setAdults} />
           </div>
-           {/* Children */}
           <div style={{ flex: 1}}>
             <SbLabel>Children</SbLabel>
             <SbCounter value={children} min={0} max={9} onChange={setChildren} />
           </div>
         </div>
 
-        {/* Budget / Luxury */}
+        <div>
+          <SbLabel>Travel Mode</SbLabel>
+          <div style={{ display: "flex", background: "#e8edf4", borderRadius: "10px", padding: "3px", gap: "3px" }}>
+            {(["fly", "drive"] as const).map((opt) => {
+              const active = travelMode === opt;
+              return (
+                <button key={opt} className="sb-toggle-btn" onClick={() => setTravelMode(opt)} style={{
+                  flex: 1, padding: "7px 0", borderRadius: "8px", border: "none",
+                  background: active ? "#fff" : "transparent",
+                  fontFamily: "inherit", fontSize: "12.5px", fontWeight: active ? 700 : 400,
+                  color: active ? "#1a202c" : "#64748b", cursor: "pointer",
+                  boxShadow: active ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+                }}>
+                  {opt === "fly" ? "✈️ Fly" : "🚗 Drive"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div>
           <SbLabel>Budget Category</SbLabel>
           <div style={{ display: "flex", background: "#e8edf4", borderRadius: "10px", padding: "3px", gap: "3px" }}>
@@ -255,10 +224,8 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
                 <button key={opt} className="sb-toggle-btn" onClick={() => setBudget(opt)} style={{
                   flex: 1, padding: "7px 0", borderRadius: "8px", border: "none",
                   background: active ? "#fff" : "transparent",
-                  fontFamily: "inherit", fontSize: "12.5px",
-                  fontWeight: active ? 700 : 400,
-                  color: active ? "#1a202c" : "#64748b",
-                  cursor: "pointer",
+                  fontFamily: "inherit", fontSize: "12.5px", fontWeight: active ? 700 : 400,
+                  color: active ? "#1a202c" : "#64748b", cursor: "pointer",
                   boxShadow: active ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
                 }}>
                   {opt === "budget" ? "💰 Budget" : "✨ Luxury"}
@@ -268,43 +235,33 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
           </div>
         </div>
 
-        {/* Search Radius */}
         <div>
           <SbLabel>
             Search Radius{" "}
             <span style={{ fontWeight: 400, color: "#64748b" }}>({radius} mi)</span>
           </SbLabel>
           <input
-            type="range" min={5} max={100} step={5}
-            value={radius}
-            onChange={(e) => setRadius(parseInt(e.target.value))}
-            className="sb-range"
-            style={{ width: "100%", cursor: "pointer", margin: "4px 0" }}
+            type="range" min={1} max={25} step={1} value={radius} onChange={(e) => setRadius(parseInt(e.target.value))}
+            className="sb-range" style={{ width: "100%", cursor: "pointer", margin: "4px 0" }}
           />
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10.5px", color: "#64748b" }}>
-            <span>5 mi</span><span>100 mi</span>
+            <span>1 mi</span><span>25 mi</span>
           </div>
         </div>
 
-        {/* Interests (OSM Categories) */}
         <div>
           <SbLabel>Interests</SbLabel>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {INTEREST_CATEGORIES.map((category) => {
-              const active = interests.includes(category.query);
+              const active = interests.includes(category.id);
               return (
                 <button
-                  key={category.id}
-                  onClick={() => handleInterestToggle(category.query)}
-                  className="sb-interest-btn"
+                  key={category.id} onClick={() => handleInterestToggle(category.id)} className="sb-interest-btn"
                   style={{
-                    padding: "6px 10px",
-                    borderRadius: "16px",
+                    padding: "6px 10px", borderRadius: "16px",
                     border: active ? "1.5px solid #3b82f6" : "1.5px solid #334155",
                     background: active ? "rgba(59, 130, 246, 0.15)" : "transparent",
-                    color: active ? "#60a5fa" : "#94a3b8",
-                    fontSize: "12px",
-                    cursor: "pointer"
+                    color: active ? "#60a5fa" : "#94a3b8", fontSize: "12px", cursor: "pointer"
                   }}
                 >
                   {category.label}
@@ -314,16 +271,11 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
           </div>
         </div>
 
-        {/* Search Button */}
         <button className="sb-submit mt-auto" onClick={handleSearchSubmit} disabled={isWorking} style={{
-          width: "100%", padding: "16px",
-          background: isWorking ? "#94a3b8" : "#2563eb",
-          color: "#fff", border: "none", borderRadius: "16px",
-          fontFamily: "inherit", fontSize: "14px", fontWeight: 700,
-          cursor: isWorking ? "not-allowed" : "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-          boxShadow: isWorking ? "none" : "0 4px 15px rgba(37,99,235,0.3)",
-          transition: "background 0.15s, box-shadow 0.15s, transform 0.1s",
+          width: "100%", padding: "16px", background: isWorking ? "#94a3b8" : "#2563eb",
+          color: "#fff", border: "none", borderRadius: "16px", fontFamily: "inherit", fontSize: "14px", fontWeight: 700,
+          cursor: isWorking ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+          boxShadow: isWorking ? "none" : "0 4px 15px rgba(37,99,235,0.3)", transition: "background 0.15s, box-shadow 0.15s, transform 0.1s",
         }}>
           {isWorking ? (
             <><Loader2 size={17} style={{ animation: "sbSpin 0.7s linear infinite" }} /> Gathering Details...</>
@@ -336,7 +288,6 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
   );
 }
 
-// ─── Shared small components ──────────────────────────────────────────────────
 function SbLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#c6c6c6", marginBottom: "6px", marginLeft: "4px" }}>
@@ -356,12 +307,8 @@ function SbCounter({ value, min, max, onChange }: { value: number; min: number; 
 }
 
 const countBtnStyle: React.CSSProperties = {
-  width: "30px", height: "30px",
-  border: "1.5px solid #e2e8f0", borderRadius: "8px",
-  background: "#fff", color: "#374151",
-  fontSize: "17px", cursor: "pointer",
-  display: "flex", alignItems: "center", justifyContent: "center",
-  fontFamily: "monospace",
-  boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-  transition: "background 0.12s",
+  width: "30px", height: "30px", border: "1.5px solid #e2e8f0", borderRadius: "8px",
+  background: "#fff", color: "#374151", fontSize: "17px", cursor: "pointer",
+  display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace",
+  boxShadow: "0 1px 2px rgba(0,0,0,0.05)", transition: "background 0.12s",
 };

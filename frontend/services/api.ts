@@ -1,6 +1,8 @@
+// larry6683/big-data-project-travel-app/frontend/services/api.ts
+
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export interface LocationResult {
   city?: string;
@@ -12,6 +14,26 @@ export interface LocationResult {
   lat?: number;
   lon?: number;
 }
+
+export interface TripSearchParams {
+  source: any;
+  destination: any;
+  startDate: string;
+  endDate: string;
+  numNights: number;
+  adults: number;
+  children: number;
+  travelMode: 'fly' | 'drive';
+  budget: 'budget' | 'luxury';
+  radius: number;
+  interests: string[];
+}
+
+// Helper to extract a 3-letter IATA code from the location name for the Amadeus Flights API
+const extractIATA = (locationName: string) => {
+  const match = locationName.match(/\b[A-Z]{3}\b/);
+  return match ? match[0] : locationName.substring(0, 3).toUpperCase();
+};
 
 export const travelApi = {
   searchLocations: async (keyword: string, lat?: number, lon?: number): Promise<LocationResult[]> => {
@@ -25,6 +47,7 @@ export const travelApi = {
       return [];
     }
   },
+  
   getNearestCity: async (lat: number, lon: number): Promise<LocationResult | null> => {
     try {
       const response = await axios.get(`${API_BASE_URL}/locations/nearest`, {
@@ -35,51 +58,104 @@ export const travelApi = {
       return null;
     }
   },
+
   getDestinationData: async (params: any) => ({ lat: params?.destination?.lat, lon: params?.destination?.lon }),
-  getFlights: async (params: any) => [],
-  getStays: async (params: any) => [],
-  getWeather: async (dest: any, dates: any) => [],
-  getAttractions: async (dest: any, radius: any) => [],
+
+  // 1. Fetch Flights (Amadeus)
+  getFlights: async (params: TripSearchParams) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/flights/search`, {
+        params: {
+          origin: params.source.iata || extractIATA(params.source.name),
+          destination: params.destination.iata || extractIATA(params.destination.name),
+          date: params.startDate,
+          return_date: params.endDate,
+          adults: params.adults,
+          children: params.children,
+          travel_class: params.budget === 'luxury' ? 'BUSINESS' : 'ECONOMY'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch flights:", error);
+      return [];
+    }
+  },
+
+  // 2. Fetch Driving Route (OSRM)
+  getDriving: async (params: TripSearchParams) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/driving/route`, {
+        params: {
+          origin_lat: params.source.lat,
+          origin_lon: params.source.lon,
+          dest_lat: params.destination.lat,
+          dest_lon: params.destination.lon
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch driving route:", error);
+      return null;
+    }
+  },
+
+  // 3. Fetch Stays (Amadeus)
+  getStays: async (params: TripSearchParams) => {
+    try {
+      // Convert miles to kilometers for the hotel radius parameter
+      const radiusKm = Math.round(params.radius * 1.60934); 
+      const response = await axios.get(`${API_BASE_URL}/hotels/nearby`, {
+        params: {
+          lat: params.destination.lat,
+          lon: params.destination.lon,
+          check_in_date: params.startDate,
+          check_out_date: params.endDate,
+          adults: params.adults,
+          radius: radiusKm || 50
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch stays:", error);
+      return [];
+    }
+  },
+
+  // 4. Fetch Weather (OpenWeather)
+  getWeather: async (dest: any, dates: any) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/weather/forecast`, {
+        params: {
+          lat: dest.lat,
+          lon: dest.lon,
+          check_in_date: dates.start,
+          check_out_date: dates.end
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch weather:", error);
+      return null;
+    }
+  },
+
+  // 5. Fetch Attractions (OSM / Amadeus)
+  getAttractions: async (dest: any, radiusMiles: number) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/attractions/nearby`, {
+        params: {
+          lat: dest.lat,
+          lon: dest.lon,
+          radius_miles: radiusMiles
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch attractions:", error);
+      return [];
+    }
+  },
+
   exportPdf: async (data: any) => new Blob()
-};
-
-/**
- * Fetches POIs from OpenStreetMap Overpass API
- * Uses explicit nwr["key"="value"](around:radius,lat,lon) syntax.
- */
-export const fetchOsmInterests = async (tags: string[], lat: number, lon: number, radiusMiles: number) => {
-  if (!tags || tags.length === 0) return [];
-
-  // Convert miles to meters for Overpass around filter
-  const radiusMeters = Math.round(radiusMiles * 1609.34);
-
-  // Construct individual query lines
-  const combinedQueries = tags.map(tag => {
-    const [key, val] = tag.split('=');
-    return `nwr["${key}"="${val}"](around:${radiusMeters},${lat},${lon});`;
-  }).join('\n  ');
-
-  // Final Overpass QL query
-  const overpassQuery = `[out:json][timeout:25];
-(
-  ${combinedQueries}
-);
-out center;`;
-
-  try {
-    const overpassUrl = process.env.NEXT_PUBLIC_OVERPASS_URL || "https://overpass-api.de/api/interpreter";
-    const response = await fetch(overpassUrl, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: `data=${encodeURIComponent(overpassQuery)}`
-    });
-    
-    const data = await response.json();
-    return data.elements || [];
-  } catch (error) {
-    console.error("Failed to fetch OSM data:", error);
-    return [];
-  }
 };

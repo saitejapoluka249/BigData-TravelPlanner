@@ -20,6 +20,11 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // ADDED THIS EFFECT: Sync internal query state when the parent's value prop changes (e.g. from cookies)
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
+
   const formatDisplay = (city: string, state?: string) => {
     const cap = (str?: string) => {
       if (!str) return '';
@@ -29,15 +34,48 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
     return parts.join(', ');
   };
 
-  const handleGPS = async () => {
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const data = await travelApi.getNearestCity(pos.coords.latitude, pos.coords.longitude);
-      if (data && data.city) {
-        const display = formatDisplay(data.city, data.state);
-        setQuery(display);
-        onChange(display);
-      }
-    }, null, { enableHighAccuracy: true });
+const handleGPS = async () => {
+    // 1. Check if the browser supports geolocation
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    // 2. Request the current position
+    navigator.geolocation.getCurrentPosition(
+      // Success callback
+      async (pos) => {
+        try {
+          const data = await travelApi.getNearestCity(pos.coords.latitude, pos.coords.longitude);
+          if (data && data.city) {
+            const display = formatDisplay(data.city, data.state);
+            setQuery(display);
+            onChange(display);
+          }
+        } catch (err) {
+          console.error("Failed to fetch nearest city:", err);
+          alert("Could not determine city from your location.");
+        }
+      },
+      // Error callback (This is where the popup logic goes)
+      (error) => {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            alert("Location access is disabled. Please click the lock icon in your browser's address bar to enable location permissions, then try again.");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            alert("Location information is currently unavailable. Please try again later.");
+            break;
+          case error.TIMEOUT:
+            alert("The request to get your location timed out. Please check your connection and try again.");
+            break;
+          default:
+            alert("An unknown error occurred while trying to access your location.");
+            break;
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 } // Added a timeout to prevent hanging
+    );
   };
 
   useEffect(() => {
