@@ -1,21 +1,210 @@
-// larry6683/big-data-project-travel-app/frontend/components/results/DrivingCard.tsx
+"use client";
 
-export default function DrivingCard({ route }: { route: any }) {
-  if (!route || route.length === 0 || route.error) {
-    return <div className="text-gray-500 italic">No driving route data available for this trip.</div>;
-  }
+import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
+
+export default function DrivingCard({ drivingData, loading: parentLoading }: { drivingData?: any, loading?: boolean }) {
+  const [routeData, setRouteData] = useState<any>(drivingData || null);
+  const [loading, setLoading] = useState<boolean>(parentLoading || false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSelected, setIsSelected] = useState<boolean>(false);
+  
+  // 1. Default showIntermediates to true
+  const [passedCities, setPassedCities] = useState<string[]>([]);
+  const [citiesLoading, setCitiesLoading] = useState<boolean>(false);
+  const [showIntermediates, setShowIntermediates] = useState<boolean>(true);
+
+  // US State Abbreviation Helper
+  const stateAbbr: Record<string, string> = {
+    "Alabama": "AL", "Alaska": "AK", "Arizona": "AZ", "Arkansas": "AR", "California": "CA", "Colorado": "CO", "Connecticut": "CT", "Delaware": "DE", "Florida": "FL", "Georgia": "GA", "Hawaii": "HI", "Idaho": "ID", "Illinois": "IL", "Indiana": "IN", "Iowa": "IA", "Kansas": "KS", "Kentucky": "KY", "Louisiana": "LA", "Maine": "ME", "Maryland": "MD", "Massachusetts": "MA", "Michigan": "MI", "Minnesota": "MN", "Mississippi": "MS", "Missouri": "MO", "Montana": "MT", "Nebraska": "NE", "Nevada": "NV", "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY", "North Carolina": "NC", "North Dakota": "ND", "Ohio": "OH", "Oklahoma": "OK", "Oregon": "OR", "Pennsylvania": "PA", "Rhode Island": "RI", "South Carolina": "SC", "South Dakota": "SD", "Tennessee": "TN", "Texas": "TX", "Utah": "UT", "Vermont": "VT", "Virginia": "VA", "Washington": "WA", "West Virginia": "WV", "Wisconsin": "WI", "Wyoming": "WY"
+  };
+
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (drivingData && Object.keys(drivingData).length > 0) {
+        setRouteData(drivingData);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const searchStateStr = Cookies.get('search_state');
+        if (!searchStateStr) throw new Error("No search state found.");
+
+        const searchState = JSON.parse(searchStateStr);
+        const { source, destination } = searchState;
+
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetch(
+          `${baseUrl}/driving/route?origin_lat=${source.lat}&origin_lon=${source.lon}&dest_lat=${destination.lat}&dest_lon=${destination.lon}`
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch driving route.");
+
+        const data = await response.json();
+        setRouteData({
+          ...data,
+          sourceName: source.name || "Origin",
+          destinationName: destination.name || "Destination"
+        });
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoute();
+  }, [drivingData]);
+
+  // 2. Automatically trigger intermediate city fetching
+  useEffect(() => {
+    if (routeData?.geometry?.coordinates && passedCities.length === 0 && !citiesLoading) {
+      fetchIntermediates();
+    }
+  }, [routeData]);
+
+  const fetchIntermediates = async () => {
+    if (citiesLoading || !routeData?.geometry?.coordinates) return;
+
+    setCitiesLoading(true);
+    const coords = routeData.geometry.coordinates;
+    const citiesFound: string[] = [];
+    
+    // Scans points to identify passing cities comprehensively
+    const step = Math.max(1, Math.floor(coords.length / 20)); 
+
+    for (let i = step; i < coords.length; i += step) {
+      const [lon, lat] = coords[i];
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`);
+        if (res.ok) {
+          const data = await res.json();
+          const addr = data.address;
+          const cityName = addr?.city || addr?.town || addr?.village || addr?.county;
+          const stateName = addr?.state;
+          const stateDisplay = stateName ? (stateAbbr[stateName] || stateName) : "";
+          
+          const fullLabel = stateDisplay ? `${cityName}, ${stateDisplay}` : cityName;
+          
+          if (fullLabel && !citiesFound.includes(fullLabel)) {
+            citiesFound.push(fullLabel);
+          }
+        }
+        await new Promise(r => setTimeout(r, 1100)); // Respect rate limits
+      } catch (e) {
+        console.error("Geocoding error", e);
+      }
+    }
+    setPassedCities(citiesFound);
+    setCitiesLoading(false);
+  };
+
+  const calculateFuel = (km: number) => {
+    const miles = km * 0.621371;
+    const gallons = miles / 25; 
+    return {
+      gallons: gallons.toFixed(1),
+      cost: (gallons * 3.35).toFixed(2),
+      miles: miles.toFixed(0)
+    };
+  };
+
+  const toggleDriveSelection = () => {
+    const tripStateStr = Cookies.get('trip_state');
+    let tripState = tripStateStr ? JSON.parse(tripStateStr) : {};
+    const newSelected = !isSelected;
+    setIsSelected(newSelected);
+
+    tripState.drive = newSelected ? { selected: true, data: routeData } : null;
+    Cookies.set('trip_state', JSON.stringify(tripState), { expires: 7 });
+  };
+
+  if (loading) return <div className="p-10 text-center animate-pulse font-bold text-gray-400">Loading Route...</div>;
+  if (!routeData) return null;
+
+  const fuel = calculateFuel(routeData.distance_km);
 
   return (
-    <div>
-      <h3 className="text-xl font-bold mb-4 text-gray-800">🚗 Road Trip Details</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-          <p className="text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">Distance</p>
-          <p className="text-xl font-bold text-blue-900">{route.distance_miles?.toFixed(1) || 'N/A'} mi</p>
+    <div className="flex flex-col gap-4">
+      <div className={`bg-white rounded-xl overflow-hidden border p-5 transition-all ${isSelected ? 'border-blue-500 ring-2 ring-blue-500 shadow-lg' : 'border-gray-200 shadow-sm'}`}>
+        
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex-1">
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight leading-none mb-1">Road Trip Journey</h3>
+            <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">
+              {routeData.sourceName} ➔ {routeData.destinationName}
+            </p>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors shadow-md">
+            <input type="checkbox" checked={isSelected} onChange={toggleDriveSelection} className="w-4 h-4 accent-white" />
+            <span className="text-xs font-black uppercase tracking-widest select-none">Save Route</span>
+          </label>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-          <p className="text-xs text-green-500 font-bold uppercase tracking-wider mb-1">Est. Time</p>
-          <p className="text-xl font-bold text-green-900">{route.duration_text || 'N/A'}</p>
+
+        {/* Stats Grid with Secondary Values */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-black text-gray-400 block mb-1">Distance</span>
+            <span className="text-xl font-black text-gray-800">{fuel.miles} Mi</span>
+            <span className="text-[11px] text-gray-400 font-medium leading-tight mt-0.5">{routeData.distance_km} km</span>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-black text-gray-400 block mb-1">Drive Time</span>
+            <span className="text-xl font-black text-gray-800">
+              {Math.floor(routeData.duration_mins / 60)}h {Math.round(routeData.duration_mins % 60)}m
+            </span>
+          </div>
+          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-black text-emerald-600 block mb-1">Fuel Estimate</span>
+            <span className="text-xl font-black text-emerald-700">${fuel.cost}</span>
+            <span className="text-[11px] text-emerald-500/70 font-medium leading-tight mt-0.5">{fuel.gallons} Gal</span>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 pt-4">
+          <button 
+            onClick={() => setShowIntermediates(!showIntermediates)}
+            className="w-full flex justify-between items-center group"
+          >
+            <span className="text-xs font-black text-blue-600 uppercase tracking-widest group-hover:underline">
+              {showIntermediates ? '▼ Hide Route List' : '▶ View All Passing Cities'}
+            </span>
+            {citiesLoading && (
+              <div className="w-4 h-4 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+            )}
+          </button>
+
+          {showIntermediates && (
+            <div className="mt-4 bg-slate-50 rounded-xl p-5 border border-slate-200">
+              <div className="flex flex-col gap-4 relative">
+                <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-blue-200"></div>
+                
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-sm shrink-0"></div>
+                  <span className="text-sm font-black text-gray-900">{routeData.sourceName}</span>
+                </div>
+
+                {passedCities.map((city, idx) => (
+                  <div key={idx} className="flex items-center gap-4 relative z-10">
+                    <div className="w-4 h-4 rounded-full bg-white border-2 border-blue-400 shadow-sm shrink-0"></div>
+                    <span className="text-sm font-bold text-gray-600">{city}</span>
+                  </div>
+                ))}
+
+                {citiesLoading && passedCities.length === 0 && (
+                   <div className="pl-8 text-xs text-gray-400 font-bold italic animate-pulse">Scanning map...</div>
+                )}
+
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow-sm shrink-0"></div>
+                  <span className="text-sm font-black text-gray-900">{routeData.destinationName}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

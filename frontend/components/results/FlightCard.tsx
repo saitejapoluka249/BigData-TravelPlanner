@@ -1,39 +1,51 @@
 // larry6683/big-data-project-travel-app/frontend/components/results/FlightCard.tsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 type SortOption = 'price_asc' | 'price_desc' | 'duration_asc' | 'duration_desc';
 
-// Added 'loading' prop to handle the fetching state
 export default function FlightCard({ flights, loading }: { flights: any[], loading?: boolean }) {
   const [sortBy, setSortBy] = useState<SortOption>('price_asc');
+  const [selectedFlightKeys, setSelectedFlightKeys] = useState<string[]>([]);
 
-  // 1. Cute Loading State
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm mt-4">
-        <img 
-          src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZ6bmZ6bmZ6bmZ6bmZ6bmZ6bmZ6bmZ6bmZ6bmZ6bmZ6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCBjdXN0b20mY3Q9Zw/3o7TKMGpx4ZqhN3XOM/giphy.gif" 
-          alt="Loading..." 
-          className="w-48 h-48 object-contain"
-        />
-        <h3 className="text-xl font-black text-gray-800 mt-4 animate-pulse">Fetching Best Itineraries...</h3>
-        <p className="text-gray-500 text-sm mt-1">Scanning hundreds of routes for you ✈️</p>
-      </div>
-    );
-  }
+  // 1. Clear selections on refresh or when new search results load
+  useEffect(() => {
+    setSelectedFlightKeys([]);
 
-  if (!flights || !Array.isArray(flights) || flights.length === 0) {
-    return (
-      <div className="p-8 text-center bg-white border border-dashed border-gray-300 rounded-xl text-gray-500 shadow-sm">
-        <span className="text-3xl block mb-2">📭</span>
-        <h3 className="text-base font-bold text-gray-800">No flights found</h3>
-        <p className="text-sm">Try adjusting your search dates or locations.</p>
-      </div>
-    );
-  }
+    const tripStateStr = Cookies.get('trip_state');
+    if (tripStateStr) {
+      try {
+        const tripState = JSON.parse(tripStateStr);
+        tripState.flights = []; 
+        Cookies.set('trip_state', JSON.stringify(tripState), { expires: 7 });
+      } catch (e) {
+        console.error("Error parsing trip_state cookie:", e);
+      }
+    }
+  }, [flights]);
 
-  // --- FORMATTING HELPERS ---
+  // 2. Handle Checkbox Toggle
+  const toggleFlightSelection = (flight: any, uniqueKey: string) => {
+    const tripStateStr = Cookies.get('trip_state');
+    let tripState = tripStateStr ? JSON.parse(tripStateStr) : {};
+    if (!tripState.flights) tripState.flights = [];
+
+    const isSelected = selectedFlightKeys.includes(uniqueKey);
+
+    if (isSelected) {
+      tripState.flights = tripState.flights.filter((f: any) => f._selectionKey !== uniqueKey);
+      setSelectedFlightKeys((prev) => prev.filter((k) => k !== uniqueKey));
+    } else {
+      const flightToSave = { ...flight, _selectionKey: uniqueKey };
+      tripState.flights.push(flightToSave);
+      setSelectedFlightKeys((prev) => [...prev, uniqueKey]);
+    }
+
+    Cookies.set('trip_state', JSON.stringify(tripState), { expires: 7 }); 
+  };
+
+  // --- FORMATTING HELPERS (Moved above useMemo) ---
   const formatTime = (timeString: string) => {
     if (!timeString) return 'TBA';
     return new Date(timeString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -79,7 +91,10 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
     }, 0);
   };
 
+  // 3. HOOKS MUST BE CALLED BEFORE EARLY RETURNS!
   const sortedFlights = useMemo(() => {
+    if (!flights || !Array.isArray(flights)) return [];
+    
     return [...flights].sort((a, b) => {
       const priceA = getPrice(a);
       const priceB = getPrice(b);
@@ -94,6 +109,27 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
       }
     });
   }, [flights, sortBy]);
+
+  // 4. NOW it's safe to do early returns!
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm mt-4">
+Loading...
+        <h3 className="text-xl font-black text-gray-800 mt-4 animate-pulse">Fetching Best Options...</h3>
+        <p className="text-gray-500 text-sm mt-1">Scanning hundreds of routes for you ✈️</p>
+      </div>
+    );
+  }
+
+  if (!flights || !Array.isArray(flights) || flights.length === 0) {
+    return (
+      <div className="p-8 text-center bg-white border border-dashed border-gray-300 rounded-xl text-gray-500 shadow-sm">
+        <span className="text-3xl block mb-2">📭</span>
+        <h3 className="text-base font-bold text-gray-800">No flights found</h3>
+        <p className="text-sm">Try adjusting your search dates or locations.</p>
+      </div>
+    );
+  }
 
   const SortBtn = ({ id, label }: { id: SortOption, label: string }) => {
     const isActive = sortBy === id;
@@ -111,11 +147,12 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
 
   return (
     <div className="flex flex-col gap-2">
-      {/* HEADER & SORTING BUTTONS */}
       <div className="flex flex-col xl:flex-row justify-between xl:items-end border-b border-gray-200 pb-3 gap-2">
         <div>
           <h3 className="text-xl font-black text-gray-900 tracking-tight">Results...</h3>
-          <p className="text-xs text-gray-500">Showing {flights.length} options</p>
+          <p className="text-xs text-gray-500">
+            Showing {Math.min(flights.length, 12)} of {flights.length} options
+          </p>
         </div>
         <div className="flex flex-wrap gap-1.5">
           <SortBtn id="price_asc" label="💰 Lowest Price" />
@@ -125,12 +162,26 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
         </div>
       </div>
       
-      {sortedFlights.map((flight, flightIndex) => {
+      {sortedFlights.slice(0, 12).map((flight, flightIndex) => {
         const uniqueKey = flight.id ? `${flight.id}-${flightIndex}` : `flight-${flightIndex}`;
+        const isSelected = selectedFlightKeys.includes(uniqueKey);
+
         return (
-          <div key={uniqueKey} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+          <div 
+            key={uniqueKey} 
+            className={`bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow duration-200 ${
+              isSelected ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-100'
+            }`}
+          >
             <div className="px-3 py-1 border-b border-gray-100 flex justify-between items-center bg-gray-100/40">
               <div className="flex items-center gap-3">
+                <input 
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggleFlightSelection(flight, uniqueKey)}
+                  className="w-5 h-5 cursor-pointer accent-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  title="Add to Itinerary"
+                />
                 <div className="w-12 h-12 flex items-center justify-center overflow-hidden relative shrink-0">
                   <img src={`https://images.kiwi.com/airlines/64/${flight.airline_code}.png`} alt={flight.airline_code} className="max-w-[80%] max-h-[80%] object-contain" />
                   <span className="hidden font-black text-gray-700 text-xs">{flight.airline_code}</span>
@@ -196,7 +247,6 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                               <div className="flex justify-between items-center">
                                 <div>
                                   <p className="text-lg font-black text-gray-800 leading-none">{formatTime(seg.departure_time)}</p>
-                                  {/* Airport Name + (IATA) */}
                                   <p className="text-xs font-bold text-gray-500 mt-0.5">
                                     {seg.departure_name || 'Airport'} ({seg.departure_airport})
                                   </p>
@@ -214,7 +264,6 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                                 </div>
                                 <div className="text-right">
                                   <p className="text-lg font-black text-gray-800 leading-none">{formatTime(seg.arrival_time)}</p>
-                                  {/* Airport Name + (IATA) */}
                                   <p className="text-xs font-bold text-gray-500 mt-0.5">
                                     {seg.arrival_name || 'Airport'} ({seg.arrival_airport})
                                   </p>
