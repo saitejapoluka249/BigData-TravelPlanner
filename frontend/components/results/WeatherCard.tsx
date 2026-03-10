@@ -59,7 +59,7 @@ export default function WeatherCard({ weather }: { weather: any }) {
   };
 
   return (
-    <div className={`bg-white rounded-xl border transition-all duration-200 shadow-sm p-5 ${isSelected ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-100/10' : 'bg-white hover:shadow-md'}`}>
+    <div className={`bg-white rounded-xl border transition-all duration-200 shadow-sm p-5 ${isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-100/10' : 'bg-white hover:shadow-md'}`}>
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-2xl font-black text-gray-900 tracking-tight">Trip Forecast</h3>
         
@@ -69,7 +69,7 @@ export default function WeatherCard({ weather }: { weather: any }) {
             type="checkbox" 
             checked={isSelected} 
             onChange={() => toggleWeatherSelection()} 
-            className="w-4 h-4 accent-indigo-600 cursor-pointer" 
+            className="w-4 h-4 accent-blue-600 cursor-pointer" 
           />
           <span className="text-xs font-bold text-gray-700 select-none w-[56px] inline-block text-center">
                           {isSelected ? 'Selected' : 'Select'}
@@ -79,7 +79,7 @@ export default function WeatherCard({ weather }: { weather: any }) {
       </div>
       
       {weather.overall_summary && (
-        <div className="mb-6 p-4 bg-indigo-50/50 border border-indigo-100 rounded-lg text-indigo-600 text-sm font-medium">
+        <div className="mb-6 p-4 bg-blue-50/50 border border-blue-100 rounded-lg text-blue-600 text-sm font-medium">
           ℹ️ {weather.overall_summary}
         </div>
       )}
@@ -113,8 +113,8 @@ export default function WeatherCard({ weather }: { weather: any }) {
                 </span>
               </div>
               <div className="flex flex-col text-right">
-                <span className="text-[10px] text-indigo-400 font-bold uppercase mb-0.5">Low</span>
-                <span className="font-black text-indigo-600 text-lg sm:text-xl leading-none">
+                <span className="text-[10px] text-blue-400 font-bold uppercase mb-0.5">Low</span>
+                <span className="font-black text-blue-600 text-lg sm:text-xl leading-none">
                   {Math.round(day.min_temp)}°
                 </span>
               </div>

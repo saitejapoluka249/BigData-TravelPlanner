@@ -1,5 +1,5 @@
 import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 
 class Settings(BaseSettings):
@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     
     SECRET_KEY: str
     
-    # Removed the hardcoded list! Pydantic will now pull this from .env
+    # Pydantic will automatically parse a JSON string like '["http://localhost:3000"]' into this list
     BACKEND_CORS_ORIGINS: List[str] 
 
     AMADEUS_CLIENT_ID: str 
@@ -20,11 +20,14 @@ class Settings(BaseSettings):
     WEATHER_API_KEY: str 
     BDC_API_KEY: str  
 
-    # Removed the hardcoded credentials!
     POSTGRES_URL: str 
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    # 🌟 FIX: Use SettingsConfigDict for Pydantic V2 instead of the inner Config class
+    model_config = SettingsConfigDict(
+        env_file=".env", 
+        env_file_encoding="utf-8", 
+        case_sensitive=True,
+        extra="ignore" # This prevents crashes if your .env file has extra variables
+    )
 
 settings = Settings()

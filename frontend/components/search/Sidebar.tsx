@@ -124,7 +124,7 @@ const handleSearchSubmit = async () => {
         <div className="pb-2.5 border-b border-slate-800 flex justify-between items-start">
           <div>
             <div className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              WanderPlan <span className="text-indigo-600">US</span>
+              WanderPlan <span className="text-blue-600">US</span>
             </div>
             <div className="text-[11px] text-[#c2c2c2] mt-1">Plan Your Trip</div>
           </div>
@@ -161,13 +161,13 @@ const handleSearchSubmit = async () => {
               type="date" 
               value={dates.start}
               onChange={e => setDates(d => ({ ...d, start: e.target.value }))}
-              className="w-full py-[9px] px-3 bg-white border-[1.5px] border-slate-200 rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-indigo-600 focus:ring-[3px] focus:ring-indigo-600/12 outline-none transition-all duration-150"
+              className="w-full py-[9px] px-3 bg-white border-[1.5px] border-slate-200 rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-blue-600 focus:ring-[3px] focus:ring-blue-600/12 outline-none transition-all duration-150"
             />
             <input
               type="date" 
               value={dates.end}
               onChange={e => setDates(d => ({ ...d, end: e.target.value }))}
-              className="w-full py-[9px] px-3 bg-white border-[1.5px] border-slate-200 rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-indigo-600 focus:ring-[3px] focus:ring-indigo-600/12 outline-none transition-all duration-150"
+              className="w-full py-[9px] px-3 bg-white border-[1.5px] border-slate-200 rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-blue-600 focus:ring-[3px] focus:ring-blue-600/12 outline-none transition-all duration-150"
             />
           </div>
         </div>
@@ -227,7 +227,7 @@ const handleSearchSubmit = async () => {
           <input
             type="range" min={1} max={25} step={1} value={radius}
             onChange={(e) => setRadius(parseInt(e.target.value))}
-            className="w-full cursor-pointer my-1 accent-indigo-600" 
+            className="w-full cursor-pointer my-1 accent-blue-600" 
           />
           <div className="flex justify-between text-[10.5px] text-slate-400">
             <span>1 mi</span><span>25 mi</span>
@@ -243,7 +243,7 @@ const handleSearchSubmit = async () => {
                 <button
                   key={category.id} 
                   onClick={() => handleInterestToggle(category.id)} 
-                  className={`px-2.5 py-1.5 rounded-2xl border-[1.5px] text-xs cursor-pointer transition-all duration-200 ${active ? 'border-indigo-600 bg-indigo-600/15 text-white' : 'border-slate-700 bg-transparent text-slate-400'}`}
+                  className={`px-2.5 py-1.5 rounded-2xl border-[1.5px] text-xs cursor-pointer transition-all duration-200 ${active ? 'border-blue-600 bg-blue-600/15 text-white' : 'border-slate-700 bg-transparent text-slate-400'}`}
                 >
                   {category.label}
                 </button>
@@ -253,7 +253,7 @@ const handleSearchSubmit = async () => {
         </div>
 
         <button 
-          className={`w-full p-4 rounded-2xl border-none font-inherit text-sm font-bold flex items-center justify-center gap-2 mt-auto transition-all duration-150 ${isWorking ? 'bg-slate-400 text-white cursor-not-allowed' : 'bg-indigo-600 text-white cursor-pointer shadow-[0_4px_15px_rgba(37,99,235,0.3)] hover:bg-indigo-600 active:scale-[0.98]'}`}
+          className={`w-full p-4 rounded-2xl border-none font-inherit text-sm font-bold flex items-center justify-center gap-2 mt-auto transition-all duration-150 ${isWorking ? 'bg-slate-400 text-white cursor-not-allowed' : 'bg-blue-600 text-white cursor-pointer shadow-[0_4px_15px_rgba(37,99,235,0.3)] hover:bg-blue-600 active:scale-[0.98]'}`}
           onClick={handleSearchSubmit} 
           disabled={isWorking}
         >

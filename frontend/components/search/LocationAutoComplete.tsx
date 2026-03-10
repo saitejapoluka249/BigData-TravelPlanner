@@ -30,7 +30,11 @@ async function resolveCoords(lat: number, lon: number): Promise<{city:string;sta
 // ─── component ───────────────────────────────────────────────────────────────
 
 export default function LocationAutocomplete({ placeholder, value, onChange, isDark, showGPS }: Props) {
-  const [query, setQuery]           = useState(value || '');
+  // Add this just for a quick test
+  console.log("Using API URL:", process.env.NEXT_PUBLIC_API_URL);
+  
+  const [query, setQuery] = useState(value || '');
+  // ...
   const [results, setResults]       = useState<any[]>([]);
   const [isOpen, setIsOpen]         = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -118,8 +122,8 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
         <input
           className={`w-full p-3 rounded-xl outline-none transition-all duration-300 text-xs shadow-inner backdrop-blur-sm
             ${isDark
-              ? 'bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:bg-white/10'
-              : 'bg-white border border-gray-200 text-gray-800 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'}
+              ? 'bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:bg-white/10'
+              : 'bg-white border border-gray-200 text-gray-800 focus:border-blue-600 focus:ring-1 focus:ring-blue-600'}
             ${!isSearching && query.length === 0 && showGPS ? 'pr-[70px]' : 'pr-10'}`}
           placeholder={placeholder}
           value={query}
@@ -129,7 +133,7 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
 
         {/* 1. Loading Animation (Fetching Results) */}
         {isSearching ? (
-          <div className="absolute right-3 flex items-center justify-center text-indigo-500">
+          <div className="absolute right-3 flex items-center justify-center text-blue-500">
             <Loader2 size={16} className="animate-spin" />
           </div>
         ) 
@@ -160,8 +164,8 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
             className={`absolute right-2 px-2.5 py-1.5 rounded-lg transition-all duration-300 text-[10px] font-bold tracking-wider flex items-center gap-1
               ${gpsLoading ? 'opacity-60 cursor-not-allowed' : ''}
               ${isDark
-                ? 'bg-white/5 hover:bg-indigo-600 text-white border border-white/5 hover:border-indigo-600'
-                : 'bg-gray-100 hover:bg-indigo-600 text-gray-600 hover:text-white'}`}
+                ? 'bg-white/5 hover:bg-blue-600 text-white border border-white/5 hover:border-blue-600'
+                : 'bg-gray-100 hover:bg-blue-600 text-gray-600 hover:text-white'}`}
           >
             {gpsLoading
               ? <><Loader2 size={12} className="animate-spin" />...</>
@@ -179,14 +183,14 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
               onMouseDown={e => { e.preventDefault(); handleSelect(loc); }}
               className={`p-3 flex items-center gap-3 cursor-pointer transition-colors duration-200 group
                 ${isDark
-                  ? 'hover:bg-indigo-600/20 border-b border-white/5 last:border-0 text-slate-200'
-                  : 'hover:bg-indigo-50 border-b border-gray-50 last:border-0 text-gray-700'}`}
+                  ? 'hover:bg-blue-600/20 border-b border-white/5 last:border-0 text-slate-200'
+                  : 'hover:bg-blue-50 border-b border-gray-50 last:border-0 text-gray-700'}`}
             >
               <div className={`p-1.5 rounded-lg transition-all duration-300 group-hover:scale-110
                 ${isDark
-                  ? 'bg-slate-800 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white'
-                  : 'bg-gray-100 text-gray-500 group-hover:bg-indigo-600 group-hover:text-white'}`}>
-                <MapPin size={14} />
+                  ? 'bg-slate-800 text-slate-400 group-hover:bg-blue-600 group-hover:text-white'
+                  : 'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white'}`}>
+                <MapPin className='size-6'/>
               </div>
               <div className="flex-1 text-sm overflow-hidden flex flex-col justify-center">
                 <div className="font-semibold truncate leading-tight">{cap(loc.city)}</div>

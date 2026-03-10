@@ -63,7 +63,7 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
             <div 
               key={uniqueKey} 
               className={`border rounded-xl p-4 transition-all duration-300 ease-in-out origin-center flex flex-row items-center justify-between gap-4 ${
-                isSelected ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-100/10' : 'bg-white hover:shadow-md'
+                isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-100/10' : 'bg-white hover:shadow-md'
               }`}
             >
               <div className="flex flex-col gap-1.5">
@@ -86,7 +86,7 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
                   type="checkbox" 
                   checked={isSelected} 
                   onChange={() => toggleAttractionSelection(poi, uniqueKey)} 
-                  className="w-4 h-4 accent-indigo-600 cursor-pointer transition-transform duration-300 hover:scale-110" 
+                  className="w-4 h-4 accent-blue-600 cursor-pointer transition-transform duration-300 hover:scale-110" 
                 />
           <span className="text-xs font-bold text-gray-700 select-none w-[56px] inline-block text-center">
                   {isSelected ? 'Selected' : 'Select'}

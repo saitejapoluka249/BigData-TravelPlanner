@@ -160,7 +160,7 @@ export default function TripMap({ mapData }: TripMapProps) {
           onChange={handleRadiusSlider}
           onMouseUp={handleRadiusDrop}
           onTouchEnd={handleRadiusDrop}
-          className="w-[100px] cursor-pointer accent-indigo-600"
+          className="w-[100px] cursor-pointer accent-blue-600"
         />
       </div>
 

@@ -61,14 +61,14 @@ export default function ToursCard({ tours }) {
           return (
             <div 
               key={uniqueKey} 
-              className={`border rounded-xl p-4 transition-colors shadow-sm flex flex-col sm:flex-row gap-4 ${isSelected ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-100/10' : 'bg-white hover:shadow-md'}`}
+              className={`border rounded-xl p-4 transition-colors shadow-sm flex flex-col sm:flex-row gap-4 ${isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-100/10' : 'bg-white hover:shadow-md'}`}
             >
               
               {/* Tour Image or Placeholder */}
               {tour.picture_url ? (
                 <img src={tour.picture_url} alt={tour.name} className="w-full sm:w-28 sm:h-28 object-cover rounded-lg shrink-0 shadow-sm border border-gray-200" />
               ) : (
-                <div className="w-full sm:w-28 sm:h-28 h-32 bg-indigo-100 text-indigo-400 flex items-center justify-center rounded-lg shrink-0 shadow-sm text-3xl border border-indigo-200">
+                <div className="w-full sm:w-28 sm:h-28 h-32 bg-blue-100 text-blue-400 flex items-center justify-center rounded-lg shrink-0 shadow-sm text-3xl border border-blue-200">
                   🎟️
                 </div>
               )}
@@ -85,7 +85,7 @@ export default function ToursCard({ tours }) {
                     type="checkbox" 
                     checked={isSelected} 
                     onChange={() => toggleTourSelection(tour, uniqueKey)} 
-                    className="w-4 h-4 accent-indigo-600 cursor-pointer" 
+                    className="w-4 h-4 accent-blue-600 cursor-pointer" 
                   />
           <span className="text-xs font-bold text-gray-700 select-none w-[56px] inline-block text-center">
                     {isSelected ? 'Selected' : 'Select'}

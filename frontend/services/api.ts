@@ -2,8 +2,11 @@
 
 import axios from 'axios';
 
-// The "as string" prevents TypeScript from complaining that it might be undefined
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
+
+if (!API_BASE_URL) {
+  console.error("🚨 NEXT_PUBLIC_API_URL is missing! Please check your frontend/.env.local file.");
+}
 
 export interface LocationResult {
   city?: string;
@@ -72,7 +75,6 @@ export const travelApi = {
          destIata = data.iata;
       }
 
-      // Map budget to dual travel classes
       const travelClasses = params.budget === 'luxury' 
         ? 'BUSINESS,FIRST' 
         : 'ECONOMY,PREMIUM_ECONOMY';
@@ -88,7 +90,11 @@ export const travelApi = {
           travel_class: travelClasses
         }
       });
-      return response.data;
+      
+      // 🌟 FIX: Safely extract array from Amadeus data object
+      const responseData = response.data;
+      return Array.isArray(responseData) ? responseData : (responseData?.data || []);
+      
     } catch (error) {
       console.error("Failed to fetch flights:", error);
       return [];
@@ -127,7 +133,11 @@ export const travelApi = {
           radius: radiusKm || 50
         }
       });
-      return response.data;
+      
+      // 🌟 FIX: Safely extract array from Amadeus data object
+      const responseData = response.data;
+      return Array.isArray(responseData) ? responseData : (responseData?.data || []);
+      
     } catch (error) {
       console.error("Failed to fetch stays:", error);
       return [];
@@ -152,7 +162,7 @@ export const travelApi = {
     }
   },
 
-// 5. Fetch Attractions (OSM) - FIXED: Handles rate-limiting gracefully without throwing loud Axios errors
+  // 5. Fetch Attractions (OSM)
   getAttractions: async (dest: any, radiusMiles: number, retries = 2): Promise<any> => {
     try {
       const response = await axios.get(`${API_BASE_URL}/attractions/nearby`, {
@@ -161,11 +171,9 @@ export const travelApi = {
           lon: dest.lon,
           radius_miles: radiusMiles
         },
-        // Tell Axios NOT to throw an error automatically on a 400 status
         validateStatus: (status) => status < 500 
       });
 
-      // If we got a 400, it means Overpass is busy, throw a silent local error to trigger the catch block
       if (response.status >= 400) {
         throw new Error("Overpass API is busy");
       }
@@ -174,16 +182,15 @@ export const travelApi = {
     } catch (error) {
       if (retries > 0) {
         console.warn(`Attractions API busy, letting it cool down... (${retries} retries left)`);
-        // Add a 1.5 second delay to let the OSM API cool down before retrying
         await new Promise(resolve => setTimeout(resolve, 1500));
         return await travelApi.getAttractions(dest, radiusMiles, retries - 1);
       }
       console.warn("Skipping attractions due to Overpass API limits.");
-      return []; // Return empty array so the app doesn't break
+      return []; 
     }
   },
 
-  // 🌟 Fetch Tours/Activities (Amadeus)
+  // 6. Fetch Tours/Activities (Amadeus)
   getTours: async (dest: any, radiusMiles: number) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/activities/nearby`, {
@@ -193,18 +200,21 @@ export const travelApi = {
           radius_miles: radiusMiles
         }
       });
-      return response.data;
+      
+      // 🌟 FIX: Safely extract array from Amadeus data object
+      const responseData = response.data;
+      return Array.isArray(responseData) ? responseData : (responseData?.data || []);
+      
     } catch (error) {
-      // Amadeus activities often fail or return 400 if no data exists, so fail silently
       return [];
     }
   },
 
-  // 6. Generate PDF Itinerary
+  // 7. Generate PDF Itinerary
   exportPdf: async (data: any) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/trips/generate-pdf`, data, {
-        responseType: 'blob', // Crucial: Tells Axios to handle the response as binary file data
+        responseType: 'blob', 
         headers: {
           'Content-Type': 'application/json'
         }

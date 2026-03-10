@@ -241,7 +241,7 @@ const fetchIntermediates = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className={`bg-white rounded-xl overflow-hidden border p-5 transition-all duration-200 ${isSelected ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-100/10' : 'bg-white hover:shadow-md'}`}>
+      <div className={`bg-white rounded-xl overflow-hidden border p-5 transition-all duration-200 ${isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-100/10' : 'bg-white hover:shadow-md'}`}>
 
         <div className="mb-6">
           <div className="flex justify-between items-start mb-3">
