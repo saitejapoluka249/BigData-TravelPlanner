@@ -6,55 +6,15 @@ import StaysCard from './StayCard';
 import WeatherCard from './WeatherCard';
 import AttractionsCard from './AttractionsCard';
 import DrivingCard from './DrivingCard';
+import ToursCard from './ToursCard'; // 🌟 NEW IMPORT
 
 type TabOption = 'flights' | 'drive' | 'stays' | 'weather' | 'attractions' | 'tours';
-
-const TripSkeleton = () => {
-  return (
-    <div className="w-full animate-in fade-in duration-500">
-      <div className="flex flex-col items-center justify-center py-10 mb-2">
-         <div className="relative w-16 h-16 mb-5">
-            <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">✈️</div>
-         </div>
-         <h3 className="text-xl font-black text-gray-800 tracking-tight">Crafting your perfect trip...</h3>
-         <p className="text-sm font-bold text-gray-400 mt-1 animate-pulse">Analyzing routes, stays, and local weather</p>
-      </div>
-
-      <div className="flex w-full border-b border-gray-200 mb-6">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex-1 flex flex-col items-center py-4 gap-2 opacity-40">
-            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-            <div className="w-16 h-2 bg-gray-200 rounded-full animate-pulse"></div>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex flex-col gap-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="w-full bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex gap-4">
-            <div className="w-16 h-16 bg-gray-100 rounded-lg animate-pulse shrink-0"></div>
-            <div className="flex flex-col gap-3 flex-1 justify-center">
-              <div className="w-1/3 h-4 bg-gray-100 rounded-full animate-pulse"></div>
-              <div className="w-1/2 h-3 bg-gray-50 rounded-full animate-pulse"></div>
-            </div>
-            <div className="flex flex-col gap-2 items-end justify-center shrink-0">
-              <div className="w-20 h-6 bg-gray-100 rounded-full animate-pulse"></div>
-              <div className="w-12 h-3 bg-gray-50 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 export default function TripResults({ data, loading }: { data: any, loading: boolean }) {
   const [activeTab, setActiveTab] = useState<TabOption>('flights');
 
+  // Pulling from the newly structured rawParams
   const showFlights = data?.rawParams?.travelMode === 'fly';
-  // ✨ RENAMED: Reading from flightData instead of transportData
   const hasFlights = data?.flightData && data.flightData.length > 0;
 
   useEffect(() => {
@@ -67,7 +27,6 @@ export default function TripResults({ data, loading }: { data: any, loading: boo
     }
   }, [data, loading, showFlights, hasFlights]);
 
-  if (loading) return <TripSkeleton />;
   if (!data && !loading) return null;
 
   const transportTab = (showFlights && hasFlights) 
@@ -112,7 +71,6 @@ export default function TripResults({ data, loading }: { data: any, loading: boo
 
       <div className="w-full min-h-[400px]">
         {activeTab === 'flights' && (
-          // ✨ RENAMED: Passing flightData instead of transportData
           <FlightCard flights={data?.flightData || []}/>
         )}
 
@@ -138,12 +96,9 @@ export default function TripResults({ data, loading }: { data: any, loading: boo
           <AttractionsCard attractions={data?.attractions || []} />
         )}
 
+        {/* 🌟 NEW TOURS TAB CONTENT */}
         {activeTab === 'tours' && (
-          <div className="p-12 text-center bg-white border border-dashed border-gray-200 rounded-2xl mt-4">
-            <span className="text-4xl block mb-4">🗺️</span>
-            <h3 className="text-lg font-black text-gray-800">Local Tours & Experiences</h3>
-            <p className="text-gray-500 text-sm mt-1">Guided tours coming soon for {data?.rawParams?.destination?.name || 'this destination'}.</p>
-          </div>
+          <ToursCard tours={data?.toursData || []} />
         )}
         
         {activeTab === 'weather' && (

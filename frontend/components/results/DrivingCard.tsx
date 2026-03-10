@@ -218,7 +218,9 @@ const fetchIntermediates = async () => {
             <h3 className="text-2xl font-black text-gray-900 tracking-tight leading-none">Road Trip Journey</h3>
             <label className="flex items-center gap-2 cursor-pointer bg-white text-black px-4 py-2 rounded-full hover:bg-blue-700 transition-colors shadow-md shrink-0">
               <input type="checkbox" checked={isSelected} onChange={toggleDriveSelection} className="w-4 h-4 accent-white" />
-              <span className="text-xs uppercase tracking-widest select-none">Select</span>
+             <span className="text-xs font-bold text-gray-700 select-none">
+                          {isSelected ? 'Selected' : 'Select'}
+                        </span>
             </label>
           </div>
           

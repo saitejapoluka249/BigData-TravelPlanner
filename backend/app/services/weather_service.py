@@ -1,5 +1,5 @@
 import httpx
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict, Counter
 from app.schemas.weather import WeatherDay, WeatherSummary
 from app.core.config import settings  
@@ -25,30 +25,32 @@ class WeatherService:
 
         async with httpx.AsyncClient() as client:
             try:
-                print(f"🌤️ Fetching Forecast and City ID for {lat}, {lon}")
+                print(f"🌤️ Fetching Forecast for {lat}, {lon}")
                 forecast_response = await client.get(forecast_url, params=forecast_params, timeout=15.0)
                 if forecast_response.status_code != 200:
                     return {"error": "Failed to fetch data from OpenWeather."}
                 
                 forecast_data = forecast_response.json()
                 
-                city_id = forecast_data.get("city", {}).get("id")
-                if not city_id:
-                    return {"error": "Could not extract City ID from OpenWeather."}
+                # ✨ TIMEZONE FIX: Extract the destination's actual timezone offset from UTC
+                tz_offset = forecast_data.get("city", {}).get("timezone", 0)
 
                 if days_until_trip <= 30:
-                    return self._parse_climate_data(forecast_data, check_in_date, check_out_date)
+                    return self._parse_climate_data(forecast_data, check_in_date, check_out_date, tz_offset)
 
-                print(f"🕰️ Trip is > 30 days away. Fetching historical data using City ID: {city_id}")
+                print(f"🕰️ Trip is > 30 days away. Fetching historical data using exact coordinates: {lat}, {lon}")
                 historical_check_in = check_in - timedelta(days=365)
                 historical_check_out = check_out - timedelta(days=365)
 
-                start_unix = int(historical_check_in.timestamp())
-                end_unix = int((historical_check_out + timedelta(days=1)).timestamp())
+                # Pad the unix timestamps by 24 hours on each side to ensure we capture 
+                # all the hours needed after applying the timezone shift!
+                start_unix = int(historical_check_in.timestamp()) - 86400
+                end_unix = int((historical_check_out + timedelta(days=1)).timestamp()) + 86400
 
                 history_url = "https://history.openweathermap.org/data/2.5/history/city"
                 history_params = {
-                    "id": city_id,
+                    "lat": lat,  # ✨ LOCATION FIX: Use exact lat/lon instead of city ID
+                    "lon": lon,
                     "type": "hour",
                     "start": start_unix,
                     "end": end_unix,
@@ -58,22 +60,24 @@ class WeatherService:
 
                 history_response = await client.get(history_url, params=history_params, timeout=15.0)
                 if history_response.status_code == 200:
-                    return self._parse_historical_data(history_response.json(), check_in_date, check_out_date)
+                    return self._parse_historical_data(history_response.json(), check_in_date, check_out_date, tz_offset)
                 else:
                     return {"error": f"OpenWeather Historical API returned {history_response.status_code}: {history_response.text}"}
             except Exception as e:
                 return {"error": f"Failed to fetch weather: {str(e)}"}
 
-    def _parse_climate_data(self, data: dict, target_check_in: str, target_check_out: str):
+    def _parse_climate_data(self, data: dict, target_check_in: str, target_check_out: str, tz_offset: int):
         days = []
         check_in_dt = datetime.strptime(target_check_in, "%Y-%m-%d").date()
         check_out_dt = datetime.strptime(target_check_out, "%Y-%m-%d").date()
 
         for item in data.get("list", []):
-            dt = datetime.fromtimestamp(item["dt"]).date()
-            if check_in_dt <= dt <= check_out_dt:
+            # ✨ TIMEZONE FIX: Add the offset and read as UTC to get the true local day
+            local_dt = datetime.fromtimestamp(item["dt"] + tz_offset, tz=timezone.utc).date()
+            
+            if check_in_dt <= local_dt <= check_out_dt:
                 days.append(WeatherDay(
-                    date=dt.strftime("%Y-%m-%d"),
+                    date=local_dt.strftime("%Y-%m-%d"),
                     max_temp=round(item["temp"]["max"], 1),
                     min_temp=round(item["temp"]["min"], 1),
                     weather=item["weather"][0]["description"].title(),
@@ -89,12 +93,13 @@ class WeatherService:
             days=days
         )
 
-    def _parse_historical_data(self, data: dict, target_check_in: str, target_check_out: str):
+    def _parse_historical_data(self, data: dict, target_check_in: str, target_check_out: str, tz_offset: int):
         daily_data = defaultdict(lambda: {"temps": [], "humidity": [], "pressure": [], "weather": []})
 
         for item in data.get("list", []):
-            dt = datetime.fromtimestamp(item["dt"])
-            future_dt = dt + timedelta(days=365)
+            # ✨ TIMEZONE FIX: Add the offset and read as UTC to correctly group by local day
+            local_dt = datetime.fromtimestamp(item["dt"] + tz_offset, tz=timezone.utc)
+            future_dt = local_dt + timedelta(days=365)
             date_str = future_dt.strftime("%Y-%m-%d")
 
             daily_data[date_str]["temps"].append(item["main"]["temp"])
@@ -120,7 +125,7 @@ class WeatherService:
             return {"error": "Could not calculate historical forecast for these dates."}
 
         return WeatherSummary(
-            overall_summary=f"Historical Estimate based on exactly 1 year ago: Expect highs around {int(days[0].max_temp)}°F.",
+            overall_summary=f"ℹ️ This is a prediction based on historical data: Expect highs around {int(days[0].max_temp)}°F.",
             days=days
         )
 

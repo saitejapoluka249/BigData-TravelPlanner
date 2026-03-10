@@ -3,11 +3,11 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import Sidebar from '@/components/layout/Sidebar';
+import Sidebar from '@/components/search/Sidebar';
 import TripResults from '@/components/results/TripResults';
 import dynamic from 'next/dynamic';
 import { travelApi, TripSearchParams } from '@/services/api';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, Menu, X, Map } from 'lucide-react';
 
 const DynamicMap = dynamic(() => import('@/components/map/TripMap'), { ssr: false });
 
@@ -16,6 +16,8 @@ export default function Dashboard() {
   const [isExporting, setIsExporting] = useState(false);
   const [tripData, setTripData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   useEffect(() => {
     sessionStorage.removeItem('current_trip_data');
@@ -31,10 +33,11 @@ export default function Dashboard() {
     }
   }, []);
 
-const handleSearch = async (params: TripSearchParams) => {
+  const handleSearch = async (params: TripSearchParams) => {
     setLoading(true);
     setError(null);
-    
+    setSidebarOpen(false); // close sidebar on mobile after search
+
     // 🧹 PRE-CLEANUP: Clear any selected flights/drives from previous searches
     const tripStateStr = localStorage.getItem('trip_state');
     if (tripStateStr) {
@@ -75,7 +78,6 @@ const handleSearch = async (params: TripSearchParams) => {
         }
       }
 
-      // ✨ EXPLICIT NULL CHECKS: Force empty arrays/objects to be saved as null
       const newTripData: any = { 
         rawParams: params, 
         flightData: finalFlightData, 
@@ -98,51 +100,99 @@ const handleSearch = async (params: TripSearchParams) => {
 
   return (
     <div className="flex h-screen w-screen bg-white overflow-hidden">
-      <Sidebar onSearch={handleSearch} loading={loading} />
 
-      <main className="flex-1 flex overflow-hidden">
-        
-        {/* LEFT PANE: Results Area */}
-        <div className="flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50/30">
-          <div className="p-6 w-full"> 
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-black text-gray-900 tracking-tight">Trip Planner</h1>
-              
-              {/* PDF EXPORT BUTTON */}
-              {tripData && (
-                <button 
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-blue-600 text-white text-sm font-bold rounded-xl transition-all shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-Generate Itenirary
-                </button>
+      {/* ── Mobile overlay backdrop ── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar: always visible on lg+, slide-in drawer on mobile ── */}
+      <div className={`
+        fixed top-0 left-0 h-full z-40 transition-transform duration-300
+        lg:relative lg:translate-x-0 lg:z-auto lg:flex-shrink-0
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <Sidebar onSearch={handleSearch} loading={loading} />
+      </div>
+
+      {/* ── Main content ── */}
+      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+
+        {/* Mobile top bar */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white lg:hidden flex-shrink-0">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-xl bg-slate-900 text-white"
+            aria-label="Open search panel"
+          >
+            <Menu size={20} />
+          </button>
+          <span className="text-sm font-black text-gray-900 tracking-tight">WanderPlan <span className="text-blue-600">US</span></span>
+          <button
+            onClick={() => setMapOpen(v => !v)}
+            className={`p-2 rounded-xl text-white transition-colors ${mapOpen ? 'bg-blue-600' : 'bg-slate-700'}`}
+            aria-label="Toggle map"
+          >
+            <Map size={20} />
+          </button>
+        </div>
+
+        {/* Content area */}
+        <div className="flex flex-1 overflow-hidden">
+
+          {/* LEFT PANE: Results */}
+          <div className={`flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50/30 ${mapOpen ? 'hidden sm:block' : ''}`}>
+            <div className="p-4 md:p-6 w-full">
+              <div className="flex justify-between items-center mb-4 md:mb-6">
+                <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Trip Planner</h1>
+                
+                {/* PDF EXPORT BUTTON */}
+                {tripData && (
+                  <button 
+                    className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-slate-900 hover:bg-blue-600 text-white text-xs md:text-sm font-bold rounded-xl transition-all shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    Generate Itinerary
+                  </button>
+                )}
+              </div>
+
+              {error && (
+                <div className="bg-red-50 text-red-700 p-4 border border-red-100 rounded-xl mb-6 text-sm font-bold">
+                  {error}
+                </div>
+              )}
+
+              {tripData || loading ? (
+                <TripResults data={tripData} loading={loading} />
+              ) : (
+                  <div className="flex flex-col items-center justify-center py-24 md:py-32 border-2 border-dashed border-gray-200 bg-white w-full rounded-2xl">
+                    <p className="text-gray-400 font-bold uppercase tracking-widest text-xs text-center px-4">
+                      {/* Shows ONLY on mobile/tablets (<1024px) */}
+                      <span className="lg:hidden">Tap the menu icon to start planning</span>
+                      
+                      {/* Shows ONLY on desktop (>=1024px) */}
+                      <span className="hidden lg:inline">Enter a destination to start planning</span>
+                    </p>
+                  </div>
               )}
             </div>
-
-            {error && (
-              <div className="bg-red-50 text-red-700 p-4 border border-red-100 rounded-xl mb-6 text-sm font-bold">
-                {error}
-              </div>
-            )}
-
-            {tripData || loading ? (
-              <TripResults data={tripData} loading={loading} />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-gray-200 bg-white w-full rounded-2xl">
-                <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">
-                  Enter a destination to start planning
-                </p>
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* RIGHT PANE: Fixed Map */}
-        <div className="hidden lg:block w-[30vw] h-full border-l border-gray-100 bg-white">
-          <div className="w-full h-full relative">
-            <DynamicMap mapData={tripData?.rawParams?.destination} />
+          {/* RIGHT PANE: Map — hidden on mobile unless toggled, always visible on lg */}
+          <div className={`
+            h-full border-l border-gray-100 bg-white
+            ${mapOpen ? 'flex-1 w-full' : 'hidden'}
+            lg:flex lg:flex-none lg:w-[30vw]
+          `}>
+            <div className="w-full h-full relative">
+              <DynamicMap mapData={tripData?.rawParams?.destination} />
+            </div>
           </div>
-        </div>
 
+        </div>
       </main>
     </div>
   );

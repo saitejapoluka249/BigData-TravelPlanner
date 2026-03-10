@@ -3,12 +3,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, X } from "lucide-react";
 import LocationAutocomplete from "./LocationAutoComplete";
 
 interface SidebarProps {
   onSearch: (params: any) => void;
   loading?: boolean;
+  onClose?: () => void; // called when the mobile ✕ button is pressed
 }
 
 const INTEREST_CATEGORIES = [
@@ -20,7 +21,7 @@ const INTEREST_CATEGORIES = [
   { id: 'transit', label: '🛣️ Transit' }
 ];
 
-export default function Sidebar({ onSearch, loading }: SidebarProps) {
+export default function Sidebar({ onSearch, loading, onClose }: SidebarProps) {
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
   const [dates, setDates] = useState({ start: "", end: "" });
@@ -33,7 +34,6 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
   const [isGeocoding, setIsGeocoding] = useState(false);
 
   useEffect(() => {
-    // Swapped Cookies.get for localStorage.getItem
     const saved = localStorage.getItem("search_state");
     if (saved) {
       try {
@@ -53,15 +53,12 @@ export default function Sidebar({ onSearch, loading }: SidebarProps) {
     }
   }, []);
 
-const getCoordinates = async (locationName: string) => {
+  const getCoordinates = async (locationName: string) => {
     try {
-      // Pointing to the new safe backend proxy route that uses Open-Meteo
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
       const res = await fetch(`${baseUrl}/locations/geocode?keyword=${encodeURIComponent(locationName)}`);
-      
       if (res.ok) {
         const data = await res.json();
-        // Return coordinates if found by the backend
         if (data.lat && data.lon) {
           return { lat: parseFloat(data.lat), lon: parseFloat(data.lon) };
         }
@@ -73,51 +70,43 @@ const getCoordinates = async (locationName: string) => {
   };
 
   const handleInterestToggle = (id: string) => {
-    setInterests(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    setInterests(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
   const handleSearchSubmit = async () => {
     if (!source || !destination || !dates.start || !dates.end) {
-      alert("Please fill in all location and date fields.");
-      return;
-    }
-    setIsGeocoding(true);
-    
-    const sourceCoords = await getCoordinates(source);
-    const destCoords = await getCoordinates(destination);
-    
-    if (!sourceCoords || !destCoords) {
-      alert("Could not find exact coordinates for one or both locations. Please select a valid city from the dropdown.");
-      setIsGeocoding(false);
+      alert("Please fill in all required fields.");
       return;
     }
 
-    const numNights = Math.ceil(Math.abs(new Date(dates.end).getTime() - new Date(dates.start).getTime()) / 86400000);
-    const searchState = {
-      source: { name: source, ...sourceCoords },
-      destination: { name: destination, ...destCoords },
+    setIsGeocoding(true);
+    const [srcCoords, dstCoords] = await Promise.all([
+      getCoordinates(source),
+      getCoordinates(destination),
+    ]);
+    setIsGeocoding(false);
+
+    const params = {
+      source: { name: source, ...(srcCoords || {}) },
+      destination: { name: destination, ...(dstCoords || {}) },
       startDate: dates.start,
       endDate: dates.end,
-      numNights,
       adults,
       children,
       travelMode,
       budget,
       radius,
-      interests, 
-      timestamp: new Date().toISOString(),
+      interests,
     };
-    
-    // Swapped Cookies.set for localStorage.setItem
-    localStorage.setItem("search_state", JSON.stringify(searchState));
-    
-    setIsGeocoding(false);
-    onSearch(searchState);
+
+    localStorage.setItem("search_state", JSON.stringify(params));
+    onSearch(params);
   };
 
   const isWorking = loading || isGeocoding;
+
   const nightCount = dates.start && dates.end
     ? Math.max(0, Math.ceil((new Date(dates.end).getTime() - new Date(dates.start).getTime()) / 86400000))
     : 0;
@@ -140,24 +129,43 @@ const getCoordinates = async (locationName: string) => {
         .sb-interest-btn { transition: all 0.2s; }
       `}</style>
 
-<div className="w-full lg:w-[18vw]" style={{
-        minHeight: "100vh",
-        background: "#0f172a",
-        borderRight: "1px solid #e8edf4",
-        padding: "24px 18px",
-        boxSizing: "border-box",
-        display: "flex", flexDirection: "column", gap: "20px",
-        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-        overflowY: "auto",
-        color: "#ffffff"
-      }}>
 
-        <div style={{ paddingBottom: "10px", borderBottom: "1px solid #e2e8f0" }}>
-          <div style={{ fontSize: "18px", fontWeight: 800, color: "#ffffff", letterSpacing: "-0.3px", display: "flex", alignItems:"center", gap:"8px" }}>
-            <div className="bg-blue-100 p-1.5 rounded-lg border border-blue-200"><Search size={16} className="text-blue-600" /></div>
-            WanderPlan <span style={{ color: "#2563eb" }}>US</span>
+      <div
+        className="w-[85vw] max-w-[320px] lg:w-[20vw] lg:max-w-none"
+        style={{
+          height: "100vh",
+          background: "#0f172a",
+          borderRight: "1px solid #e8edf4",
+          padding: "24px 18px",
+          boxSizing: "border-box",
+          display: "flex", flexDirection: "column", gap: "20px",
+          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+          overflowY: "auto",
+          color: "#ffffff",
+        }}
+      >
+        {/* Header row */}
+        <div style={{ paddingBottom: "10px", borderBottom: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <div style={{ fontSize: "18px", fontWeight: 800, color: "#ffffff", letterSpacing: "-0.3px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <div className="bg-blue-100 p-1.5 rounded-lg border border-blue-200">
+                <Search size={16} className="text-blue-600" />
+              </div>
+              WanderPlan <span style={{ color: "#2563eb" }}>US</span>
+            </div>
+            <div style={{ fontSize: "11px", color: "#c2c2c2", marginTop: "4px" }}>Plan Your Trip</div>
           </div>
-          <div style={{ fontSize: "11px", color: "#c2c2c2", marginTop: "4px" }}>Plan Your Trip</div>
+
+          {/* Close button — only visible on mobile */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Close sidebar"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
 
         <div>
@@ -175,30 +183,26 @@ const getCoordinates = async (locationName: string) => {
             Travel Dates{" "}
             {nightCount > 0 && <span style={{ fontWeight: 400, color: "#94a3b8", fontSize: "10.5px" }}>· {nightCount} night{nightCount !== 1 ? "s" : ""}</span>}
           </SbLabel>
-          <div style={{ display: "flex", gap: "7px" }}>
-            {[
-              { val: dates.start, key: "start" },
-              { val: dates.end, key: "end" },
-            ].map(({ val, key }) => (
-              <input
-                key={key} type="date" value={val} onChange={(e) => setDates({ ...dates, [key]: e.target.value })}
-                className="sb-input-date"
-                style={{
-                  width: "100%", padding: "10px 12px", fontFamily: "inherit", fontSize: "13px",
-                  background: "#fff", color: "#1a202c", border: "1.5px solid #e2e8f0", borderRadius: "10px",
-                  boxSizing: "border-box", cursor: "pointer",
-                }}
-              />
-            ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <input
+              type="date" className="sb-input-date" value={dates.start}
+              onChange={e => setDates(d => ({ ...d, start: e.target.value }))}
+              style={{ width: "100%", padding: "9px 12px", background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: "10px", fontFamily: "inherit", fontSize: "13px", color: "#1a202c", boxSizing: "border-box" }}
+            />
+            <input
+              type="date" className="sb-input-date" value={dates.end}
+              onChange={e => setDates(d => ({ ...d, end: e.target.value }))}
+              style={{ width: "100%", padding: "9px 12px", background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: "10px", fontFamily: "inherit", fontSize: "13px", color: "#1a202c", boxSizing: "border-box" }}
+            />
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "10px" }}>
-          <div style={{ flex: 1}}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          <div style={{ flex: "1 1 120px" }}>
             <SbLabel>Adults</SbLabel>
             <SbCounter value={adults} min={1} max={9} onChange={setAdults} />
           </div>
-          <div style={{ flex: 1}}>
+          <div style={{ flex: "1 1 120px" }}>
             <SbLabel>Children</SbLabel>
             <SbCounter value={children} min={0} max={9} onChange={setChildren} />
           </div>
@@ -250,7 +254,8 @@ const getCoordinates = async (locationName: string) => {
             <span style={{ fontWeight: 400, color: "#64748b" }}>({radius} mi)</span>
           </SbLabel>
           <input
-            type="range" min={1} max={25} step={1} value={radius} onChange={(e) => setRadius(parseInt(e.target.value))}
+            type="range" min={1} max={25} step={1} value={radius}
+            onChange={(e) => setRadius(parseInt(e.target.value))}
             className="sb-range" style={{ width: "100%", cursor: "pointer", margin: "4px 0" }}
           />
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10.5px", color: "#64748b" }}>
@@ -275,7 +280,7 @@ const getCoordinates = async (locationName: string) => {
                 >
                   {category.label}
                 </button>
-              )
+              );
             })}
           </div>
         </div>
@@ -307,7 +312,7 @@ function SbLabel({ children }: { children: React.ReactNode }) {
 
 function SbCounter({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (v: number) => void }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "#fff", padding:"4px", borderRadius:"10px", border:"1.5px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "#fff", padding: "4px", borderRadius: "10px", border: "1.5px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
       <button className="sb-count-btn" onClick={() => onChange(Math.max(min, value - 1))} style={countBtnStyle}>−</button>
       <span style={{ flex: 1, fontWeight: 700, fontSize: "14px", color: "#1a202c", textAlign: "center" }}>{value}</span>
       <button className="sb-count-btn" onClick={() => onChange(Math.min(max, value + 1))} style={countBtnStyle}>+</button>
