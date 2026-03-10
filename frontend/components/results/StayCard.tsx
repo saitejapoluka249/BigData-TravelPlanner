@@ -131,7 +131,7 @@ export default function StayCard({ stays }: { stays: any[] }) {
               key={uniqueKey} 
               className={`border rounded-xl transition-all duration-200 overflow-hidden ${
                 isSelected 
-                  ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50/10 shadow-md' 
+                  ? 'border-blue-600 ring-2 ring-blue-600 bg-blue-50/10 shadow-md' 
                   : 'border-gray-200 hover:shadow-md bg-white'
               }`}
             >

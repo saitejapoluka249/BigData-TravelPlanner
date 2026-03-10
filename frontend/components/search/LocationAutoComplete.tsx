@@ -116,8 +116,8 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
         <input
           className={`w-full p-3 rounded-xl outline-none transition-all duration-300 text-xs shadow-inner backdrop-blur-sm
             ${isDark
-              ? 'bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white/10'
-              : 'bg-white border border-gray-200 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'}
+              ? 'bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:bg-white/10'
+              : 'bg-white border border-gray-200 text-gray-800 focus:border-blue-600 focus:ring-1 focus:ring-blue-600'}
             ${showGPS ? 'pr-[70px]' : 'pr-3'}`}
           placeholder={placeholder}
           value={query}
@@ -134,7 +134,7 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
             className={`absolute right-2 px-2.5 py-1.5 rounded-lg transition-all duration-300 text-[10px] font-bold tracking-wider flex items-center gap-1
               ${gpsLoading ? 'opacity-60 cursor-not-allowed' : ''}
               ${isDark
-                ? 'bg-white/5 hover:bg-blue-600 text-white border border-white/5 hover:border-blue-500'
+                ? 'bg-white/5 hover:bg-blue-600 text-white border border-white/5 hover:border-blue-600'
                 : 'bg-gray-100 hover:bg-blue-600 text-gray-600 hover:text-white'}`}
           >
             {gpsLoading
@@ -158,7 +158,7 @@ export default function LocationAutocomplete({ placeholder, value, onChange, isD
             >
               <div className={`p-1.5 rounded-lg transition-all duration-300 group-hover:scale-110
                 ${isDark
-                  ? 'bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white'
+                  ? 'bg-blue-600/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white'
                   : 'bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white'}`}>
                 <MapPin size={14} />
               </div>

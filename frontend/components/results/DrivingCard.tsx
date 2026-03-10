@@ -241,7 +241,7 @@ const fetchIntermediates = async () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className={`bg-white rounded-xl overflow-hidden border p-5 transition-all duration-200 ${isSelected ? 'border-blue-500 ring-2 ring-blue-500 shadow-lg bg-blue-50/10' : 'border-gray-200 shadow-sm'}`}>
+      <div className={`bg-white rounded-xl overflow-hidden border p-5 transition-all duration-200 ${isSelected ? 'border-blue-600 ring-2 ring-blue-600 shadow-lg bg-blue-50/10' : 'border-gray-200 shadow-sm'}`}>
 
         <div className="mb-6">
           <div className="flex justify-between items-start mb-3">
@@ -262,7 +262,7 @@ const fetchIntermediates = async () => {
           </div>
           
           <div className="flex items-center gap-2 text-sm font-bold mt-1">
-            <span className="bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-lg shadow-sm">
+            <span className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded-lg shadow-sm">
               {routeData.sourceName}
             </span>
             <span className="text-gray-400 text-lg">➔</span>

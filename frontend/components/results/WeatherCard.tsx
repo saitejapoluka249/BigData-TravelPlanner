@@ -59,7 +59,7 @@ export default function WeatherCard({ weather }: { weather: any }) {
   };
 
   return (
-    <div className={`bg-white rounded-xl border transition-all duration-200 shadow-sm p-5 ${isSelected ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-200'}`}>
+    <div className={`bg-white rounded-xl border transition-all duration-200 shadow-sm p-5 ${isSelected ? 'border-blue-600 ring-2 ring-blue-600' : 'border-gray-200'}`}>
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-2xl font-black text-gray-900 tracking-tight">Trip Forecast</h3>
         
@@ -79,7 +79,7 @@ export default function WeatherCard({ weather }: { weather: any }) {
       </div>
       
       {weather.overall_summary && (
-        <div className="mb-6 p-4 bg-blue-50/50 border border-blue-100 rounded-lg text-blue-800 text-sm font-medium">
+        <div className="mb-6 p-4 bg-blue-50/50 border border-blue-100 rounded-lg text-blue-600 text-sm font-medium">
           ℹ️ {weather.overall_summary}
         </div>
       )}

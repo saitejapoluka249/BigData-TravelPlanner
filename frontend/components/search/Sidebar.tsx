@@ -147,10 +147,7 @@ export default function Sidebar({ onSearch, loading, onClose }: SidebarProps) {
         {/* Header row */}
         <div style={{ paddingBottom: "10px", borderBottom: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{ fontSize: "18px", fontWeight: 800, color: "#ffffff", letterSpacing: "-0.3px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <div className="bg-blue-100 p-1.5 rounded-lg border border-blue-200">
-                <Search size={16} className="text-blue-600" />
-              </div>
+            <div style={{ fontSize: "24px", fontWeight: 800, color: "#ffffff", letterSpacing: "-0.3px", display: "flex", alignItems: "center", gap: "8px" }}>
               WanderPlan <span style={{ color: "#2563eb" }}>US</span>
             </div>
             <div style={{ fontSize: "11px", color: "#c2c2c2", marginTop: "4px" }}>Plan Your Trip</div>

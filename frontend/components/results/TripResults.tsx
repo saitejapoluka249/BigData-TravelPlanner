@@ -122,7 +122,7 @@ export default function TripResults({ data, loading }: { data: any, loading: boo
         {activeTab === 'drive' && (
           <div className="flex flex-col gap-4">
             {showFlights && !hasFlights && (
-              <div className="p-4 bg-blue-50 text-blue-800 rounded-xl border border-blue-200 flex items-center gap-3">
+              <div className="p-4 bg-blue-50 text-blue-600 rounded-xl border border-blue-200 flex items-center gap-3">
                 <span className="text-xl">ℹ️</span>
                 <p className="text-sm font-medium">
                   We couldn't find any flights for this route, so we're showing you the best driving route instead!

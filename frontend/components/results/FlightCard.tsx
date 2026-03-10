@@ -128,7 +128,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
       <button
         onClick={() => setSortBy(id)}
         className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all border ${
-          isActive ? 'bg-blue-600 text-white border-blue-700 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+          isActive ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
         }`}
       >
         {label}
@@ -161,7 +161,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
           <div 
             key={uniqueKey} 
             className={`bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow duration-200 ${
-              isSelected ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50/10' : 'border-gray-100'
+              isSelected ? 'border-blue-600 ring-2 ring-blue-600 bg-blue-50/10' : 'border-gray-100'
             }`}
           >
             <div className={`px-3 py-1 border-b flex justify-between items-center ${isSelected ? 'bg-blue-50 border-blue-100' : 'bg-gray-100/40 border-gray-100'}`}>
@@ -237,7 +237,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                         return (
                           <div key={segIndex} className={`relative z-10 flex gap-3 ${isLast ? '' : 'mb-3'}`}>
                             <div className="flex flex-col items-center mt-1">
-                              <div className={`w-3 h-3 rounded-full border-2 bg-white relative z-20 ${isOutbound ? 'border-blue-500' : 'border-emerald-500'}`}></div>
+                              <div className={`w-3 h-3 rounded-full border-2 bg-white relative z-20 ${isOutbound ? 'border-blue-600' : 'border-emerald-500'}`}></div>
                             </div>
 
                             <div className="flex-1 bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm relative">

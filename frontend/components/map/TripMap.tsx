@@ -166,7 +166,7 @@ export default function TripMap({ mapData }: TripMapProps) {
         border: '1px solid #e5e7eb'
       }}>
         <label style={{ fontSize: '10px', fontWeight: 600, color: '#374151', paddingLeft: '6px' }}>
-          Radius: {radiusValue} mi
+         Zoom: {radiusValue} mi
         </label>
         <input 
           type="range" 

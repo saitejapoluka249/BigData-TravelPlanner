@@ -21,7 +21,7 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
     }
   }, [attractions]);
 
-  const toggleSelection = (item: any, uniqueKey: string) => {
+  const toggleAttractionSelection = (item: any, uniqueKey: string) => {
     const tripStateStr = localStorage.getItem('trip_state');
     let tripState = tripStateStr ? JSON.parse(tripStateStr) : {};
     if (!tripState.attractions) tripState.attractions = [];
@@ -64,12 +64,12 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
             <div 
               key={uniqueKey} 
               // Changed each item to be a flex-row with items centered and space between
-              className={`border rounded-xl p-4 transition-colors shadow-sm flex flex-row items-center justify-between gap-4 ${isSelected ? 'border-purple-500 ring-1 ring-purple-500 bg-purple-50/10' : 'border-gray-100 bg-gray-50 hover:bg-purple-50 hover:border-purple-200'}`}
+              className={`border rounded-xl p-4 transition-colors shadow-sm flex flex-row items-center justify-between gap-4 ${isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-50/10' : 'border-gray-100 bg-gray-50 hover:bg-blue-50 hover:border-blue-200'}`}
             >
               <div className="flex flex-col gap-1.5">
                 <h4 className="font-bold text-gray-800 leading-tight" title={name}>{name}</h4>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-block bg-purple-100 text-purple-800 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider">
+                  <span className="inline-block bg-blue-100 text-blue-600 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider">
                     {category.replace(/_/g, ' ')}
                   </span>
                   
@@ -80,17 +80,19 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
                   )}
                 </div>
               </div>
+        
         <label className="flex items-center gap-2 cursor-pointer bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors shadow-sm shrink-0">
           <input 
             type="checkbox" 
             checked={isSelected} 
-            onChange={() => toggleSelection(poi, uniqueKey)} 
-            className="w-4 h-4 accent-purple-500 cursor-pointer" 
+            onChange={() => toggleAttractionSelection(poi, uniqueKey)} 
+            className="w-4 h-4 accent-blue-600 cursor-pointer" 
           />
           <span className="text-xs font-bold text-gray-700 select-none">
             {isSelected ? 'Selected' : 'Select'}
           </span>
         </label>
+
             </div>
           );
         })}
