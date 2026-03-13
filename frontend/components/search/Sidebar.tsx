@@ -22,7 +22,8 @@ const INTEREST_CATEGORIES = [
   { id: 'transit', label: '🛣️ Transit' }
 ];
 
-export default function Sidebar({ onSearch, onSearchStart, loading, onClose }: SidebarProps) {  const [source, setSource] = useState("");
+export default function Sidebar({ onSearch, onSearchStart, loading, onClose }: SidebarProps) {
+  const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
   const [dates, setDates] = useState({ start: "", end: "" });
   const [adults, setAdults] = useState(1);
@@ -32,6 +33,9 @@ export default function Sidebar({ onSearch, onSearchStart, loading, onClose }: S
   const [radius, setRadius] = useState(10);
   const [interests, setInterests] = useState<string[]>([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  
+  // New state to track field-specific validation errors
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem("search_state");
@@ -53,7 +57,7 @@ export default function Sidebar({ onSearch, onSearchStart, loading, onClose }: S
     }
   }, []);
 
-const getCoordinates = async (locationName: string) => {
+  const getCoordinates = async (locationName: string) => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL; 
       const res = await fetch(`${baseUrl}/locations/geocode?keyword=${encodeURIComponent(locationName)}`);
@@ -76,12 +80,31 @@ const getCoordinates = async (locationName: string) => {
     );
   };
 
-const handleSearchSubmit = async () => {
-    if (!source || !destination || !dates.start || !dates.end) {
-      alert("Please fill in all required fields.");
+  const handleSearchSubmit = async () => {
+    // Validation Logic
+    const newErrors: Record<string, string> = {};
+    if (!source) newErrors.source = "Departure location is required.";
+    if (!destination) newErrors.destination = "Destination is required.";
+    if (!dates.start) newErrors.start = "Start date is required.";
+    if (!dates.end) newErrors.end = "End date is required.";
+    
+    // Additional Date Validation
+    if (dates.start && dates.end) {
+      const startDate = new Date(dates.start);
+      const endDate = new Date(dates.end);
+      if (startDate > endDate) {
+        newErrors.end = "End date cannot be before start date.";
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-    // 🌟 ADD THIS: Instantly trigger the main loading screen
+
+    // Clear errors if validation passes
+    setErrors({});
+
     if (onSearchStart) onSearchStart(); 
 
     setIsGeocoding(true);
@@ -116,8 +139,6 @@ const handleSearchSubmit = async () => {
 
   return (
     <>
-
-
       <div className="w-[80vw] max-w-[320px] lg:w-[20vw] lg:max-w-none h-screen bg-slate-900 border-r border-slate-200/10 px-[18px] py-6 flex flex-col gap-5 font-sans overflow-y-auto text-white">
         
         {/* Header row */}
@@ -143,12 +164,32 @@ const handleSearchSubmit = async () => {
 
         <div>
           <SbLabel>Departure From</SbLabel>
-          <LocationAutocomplete placeholder="eg. NEW YORK, NY" value={source} onChange={setSource} isDark={false} showGPS={true} />
+          <LocationAutocomplete 
+            placeholder="eg. NEW YORK, NY" 
+            value={source} 
+            onChange={(val) => {
+              setSource(val);
+              if (errors.source) setErrors(prev => ({ ...prev, source: "" }));
+            }} 
+            isDark={false} 
+            showGPS={true} 
+          />
+          {errors.source && <span className="text-red-400 text-[11px] mt-1 block font-medium">{errors.source}</span>}
         </div>
 
         <div>
           <SbLabel>Destination To</SbLabel>
-          <LocationAutocomplete placeholder="eg. LOS ANGELES, CA" value={destination} onChange={setDestination} isDark={false} showGPS={false} />
+          <LocationAutocomplete 
+            placeholder="eg. LOS ANGELES, CA" 
+            value={destination} 
+            onChange={(val) => {
+              setDestination(val);
+              if (errors.destination) setErrors(prev => ({ ...prev, destination: "" }));
+            }} 
+            isDark={false} 
+            showGPS={false} 
+          />
+          {errors.destination && <span className="text-red-400 text-[11px] mt-1 block font-medium">{errors.destination}</span>}
         </div>
 
         <div>
@@ -156,19 +197,34 @@ const handleSearchSubmit = async () => {
             Travel Dates{" "}
             {nightCount > 0 && <span className="font-normal text-slate-400 text-[10.5px]">· {nightCount} night{nightCount !== 1 ? "s" : ""}</span>}
           </SbLabel>
-          <div className="flex flex-col gap-2">
-            <input
-              type="date" 
-              value={dates.start}
-              onChange={e => setDates(d => ({ ...d, start: e.target.value }))}
-              className="w-full py-[9px] px-3 bg-white border-[1.5px] border-slate-200 rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-blue-600 focus:ring-[3px] focus:ring-blue-600/12 outline-none transition-all duration-150"
-            />
-            <input
-              type="date" 
-              value={dates.end}
-              onChange={e => setDates(d => ({ ...d, end: e.target.value }))}
-              className="w-full py-[9px] px-3 bg-white border-[1.5px] border-slate-200 rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-blue-600 focus:ring-[3px] focus:ring-blue-600/12 outline-none transition-all duration-150"
-            />
+          
+          {/* Flex-wrap applied here for responsive single-row to double-row date pickers */}
+          <div className="flex flex-wrap gap-2">
+            <div className="flex-1 min-w-[120px]">
+              <input
+                type="date" 
+                value={dates.start}
+                onChange={e => {
+                  setDates(d => ({ ...d, start: e.target.value }));
+                  if (errors.start) setErrors(prev => ({ ...prev, start: "" }));
+                }}
+                className={`w-full py-[9px] px-3 bg-white border-[1.5px] ${errors.start ? 'border-red-500' : 'border-slate-200'} rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-blue-600 focus:ring-[3px] focus:ring-blue-600/12 outline-none transition-all duration-150`}
+              />
+              {errors.start && <span className="text-red-400 text-[11px] mt-1 block font-medium">{errors.start}</span>}
+            </div>
+            
+            <div className="flex-1 min-w-[120px]">
+              <input
+                type="date" 
+                value={dates.end}
+                onChange={e => {
+                  setDates(d => ({ ...d, end: e.target.value }));
+                  if (errors.end) setErrors(prev => ({ ...prev, end: "" }));
+                }}
+                className={`w-full py-[9px] px-3 bg-white border-[1.5px] ${errors.end ? 'border-red-500' : 'border-slate-200'} rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-blue-600 focus:ring-[3px] focus:ring-blue-600/12 outline-none transition-all duration-150`}
+              />
+              {errors.end && <span className="text-red-400 text-[11px] mt-1 block font-medium">{errors.end}</span>}
+            </div>
           </div>
         </div>
 
@@ -184,20 +240,26 @@ const handleSearchSubmit = async () => {
         </div>
 
         <div>
-          <SbLabel>Travel Mode</SbLabel>
-          <div className="flex bg-slate-100 rounded-[10px] p-[3px] gap-[3px]">
-            {(["fly", "drive"] as const).map((opt) => {
-              const active = travelMode === opt;
-              return (
-                <button 
-                  key={opt} 
-                  onClick={() => setTravelMode(opt)} 
-                  className={`flex-1 py-[7px] rounded-lg border-none font-inherit text-[12.5px] cursor-pointer transition-all duration-150 hover:opacity-85 ${active ? 'bg-white font-bold text-slate-900 shadow-[0_1px_4px_rgba(0,0,0,0.1)]' : 'bg-transparent font-normal text-slate-500'}`}
-                >
-                  {opt === "fly" ? "✈️ Fly" : "🚗 Drive"}
-                </button>
-              );
-            })}
+          <SbLabel>
+            Travel Dates{" "}
+            {nightCount > 0 && <span className="font-normal text-slate-400 text-[10.5px]">· {nightCount} night{nightCount !== 1 ? "s" : ""}</span>}
+          </SbLabel>
+          {/* Changed container to flex-wrap */}
+          <div className="flex flex-wrap gap-2">
+            <input
+              type="date" 
+              value={dates.start}
+              onChange={e => setDates(d => ({ ...d, start: e.target.value }))}
+              /* Added flex-1 and min-w-[120px] to allow wrapping */
+              className="flex-1 min-w-[120px] w-full py-[9px] px-3 bg-white border-[1.5px] border-slate-200 rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-blue-600 focus:ring-[3px] focus:ring-blue-600/12 outline-none transition-all duration-150"
+            />
+            <input
+              type="date" 
+              value={dates.end}
+              onChange={e => setDates(d => ({ ...d, end: e.target.value }))}
+              /* Added flex-1 and min-w-[120px] to allow wrapping */
+              className="flex-1 min-w-[120px] w-full py-[9px] px-3 bg-white border-[1.5px] border-slate-200 rounded-[10px] font-inherit text-[13px] text-slate-900 focus:border-blue-600 focus:ring-[3px] focus:ring-blue-600/12 outline-none transition-all duration-150"
+            />
           </div>
         </div>
 
