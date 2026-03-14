@@ -5,9 +5,9 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/search/Sidebar';
 import TripResults from '@/components/results/TripResults';
+import Navbar from '@/components/Navbar';
 import dynamic from 'next/dynamic';
 import { travelApi, TripSearchParams } from '@/services/api';
-import { Download, Loader2, Menu, X, Map } from 'lucide-react';
 
 const DynamicMap = dynamic(() => import('@/components/map/TripMap'), { ssr: false });
 
@@ -117,44 +117,30 @@ export default function Dashboard() {
             setSidebarOpen(false); // Smoothly close drawer instantly
           }}
           loading={loading} 
+          onClose={() => setSidebarOpen(false)}
         />
       </div>
 
       {/* ── Main content ── */}
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-        {/* Mobile / Tablet top bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white lg:hidden flex-shrink-0">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-xl bg-slate-900 text-white"
-            aria-label="Open search panel"
-          >
-            <Menu size={20} />
-          </button>
-          <span className="text-sm font-black text-gray-900 tracking-tight">WanderPlan <span className="text-blue-600">US</span></span>
-          
-          {/* Map Toggle Button (Hidden on md+ because map is always visible on Tablets) */}
-          <button
-            onClick={() => setMapOpen(v => !v)}
-            className={`p-2 rounded-xl text-white transition-colors md:hidden ${mapOpen ? 'bg-blue-600' : 'bg-slate-700'}`}
-            aria-label="Toggle map"
-          >
-            <Map size={20} />
-          </button>
-        </div>
+        {/* Universal Top Navbar Component */}
+        <Navbar 
+          onMenuClick={() => setSidebarOpen(true)} 
+          mapOpen={mapOpen} 
+          onMapToggle={() => setMapOpen(v => !v)} 
+        />
 
         {/* Content area */}
         <div className="flex flex-1 overflow-hidden">
 
           {/* LEFT PANE: Results */}
-          {/* On mobile (<md), if map is open, this hides. On tablets (md+), this is always block */}
           <div className={`flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50/30 ${mapOpen ? 'hidden md:block' : ''}`}>
             <div className="p-4 md:p-6 w-full relative">
               <div className="flex justify-between items-center mb-4 md:mb-6">
                 <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Trip Planner</h1>
                 
-                {/* Generate Itenirary Button */}
+                {/* Generate Itinerary Button */}
                 {tripData && !loading && (
                   <button 
                     className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold rounded-xl transition-all shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
@@ -184,7 +170,6 @@ export default function Dashboard() {
           </div>
 
           {/* RIGHT PANE: Map */}
-          {/* Hidden on mobile unless toggled. Always visible side-by-side on tablets (md) and desktops (lg) */}
           <div className={`
             h-full border-l border-gray-100 bg-white
             ${mapOpen ? 'flex-1 w-full' : 'hidden'}

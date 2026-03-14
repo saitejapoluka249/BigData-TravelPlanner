@@ -1,4 +1,4 @@
-// larry6683/big-data-project-travel-app/frontend/services/api.ts
+// frontend/services/api.ts
 
 import axios from 'axios';
 
@@ -60,18 +60,24 @@ export const travelApi = {
   getDestinationData: async (params: any) => ({ lat: params?.destination?.lat, lon: params?.destination?.lon }),
 
   // 1. Fetch Flights (Amadeus)
-  getFlights: async (params: TripSearchParams) => {
+  getFlights: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       let originIata = params.source.iata;
       let destIata = params.destination.iata;
 
       if (!originIata && params.source.lat && params.source.lon) {
-         const { data } = await axios.get(`${API_BASE_URL}/locations/airport/nearest`, { params: { lat: params.source.lat, lon: params.source.lon } });
+         const { data } = await axios.get(`${API_BASE_URL}/locations/airport/nearest`, { 
+           params: { lat: params.source.lat, lon: params.source.lon },
+           signal 
+         });
          originIata = data.iata;
       }
       
       if (!destIata && params.destination.lat && params.destination.lon) {
-         const { data } = await axios.get(`${API_BASE_URL}/locations/airport/nearest`, { params: { lat: params.destination.lat, lon: params.destination.lon } });
+         const { data } = await axios.get(`${API_BASE_URL}/locations/airport/nearest`, { 
+           params: { lat: params.destination.lat, lon: params.destination.lon },
+           signal 
+         });
          destIata = data.iata;
       }
 
@@ -88,21 +94,22 @@ export const travelApi = {
           adults: params.adults,
           children: params.children,
           travel_class: travelClasses
-        }
+        },
+        signal
       });
       
-      // 🌟 FIX: Safely extract array from Amadeus data object
       const responseData = response.data;
       return Array.isArray(responseData) ? responseData : (responseData?.data || []);
       
     } catch (error) {
+      if (axios.isCancel(error)) return [];
       console.error("Failed to fetch flights:", error);
       return [];
     }
   },
 
   // 2. Fetch Driving Route (OSRM)
-  getDriving: async (params: TripSearchParams) => {
+  getDriving: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/driving/route`, {
         params: {
@@ -110,17 +117,19 @@ export const travelApi = {
           origin_lon: params.source.lon,
           dest_lat: params.destination.lat,
           dest_lon: params.destination.lon
-        }
+        },
+        signal
       });
       return response.data;
     } catch (error) {
+      if (axios.isCancel(error)) return null;
       console.error("Failed to fetch driving route:", error);
       return null;
     }
   },
 
   // 3. Fetch Stays (Amadeus)
-  getStays: async (params: TripSearchParams) => {
+  getStays: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       const radiusKm = Math.round(params.radius * 1.60934); 
       const response = await axios.get(`${API_BASE_URL}/hotels/nearby`, {
@@ -131,21 +140,22 @@ export const travelApi = {
           check_out_date: params.endDate,
           adults: params.adults,
           radius: radiusKm || 50
-        }
+        },
+        signal
       });
       
-      // 🌟 FIX: Safely extract array from Amadeus data object
       const responseData = response.data;
       return Array.isArray(responseData) ? responseData : (responseData?.data || []);
       
     } catch (error) {
+      if (axios.isCancel(error)) return [];
       console.error("Failed to fetch stays:", error);
       return [];
     }
   },
 
   // 4. Fetch Weather (OpenWeather)
-  getWeather: async (dest: any, dates: any) => {
+  getWeather: async (dest: any, dates: any, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/weather/forecast`, {
         params: {
@@ -153,17 +163,19 @@ export const travelApi = {
           lon: dest.lon,
           check_in_date: dates.start,
           check_out_date: dates.end
-        }
+        },
+        signal
       });
       return response.data;
     } catch (error) {
+      if (axios.isCancel(error)) return null;
       console.error("Failed to fetch weather:", error);
       return null;
     }
   },
 
   // 5. Fetch Attractions (OSM)
-  getAttractions: async (dest: any, radiusMiles: number, retries = 2): Promise<any> => {
+  getAttractions: async (dest: any, radiusMiles: number, signal?: AbortSignal, retries = 2): Promise<any> => {
     try {
       const response = await axios.get(`${API_BASE_URL}/attractions/nearby`, {
         params: {
@@ -171,6 +183,7 @@ export const travelApi = {
           lon: dest.lon,
           radius_miles: radiusMiles
         },
+        signal,
         validateStatus: (status) => status < 500 
       });
 
@@ -180,10 +193,11 @@ export const travelApi = {
 
       return response.data;
     } catch (error) {
+      if (axios.isCancel(error)) return [];
       if (retries > 0) {
         console.warn(`Attractions API busy, letting it cool down... (${retries} retries left)`);
         await new Promise(resolve => setTimeout(resolve, 1500));
-        return await travelApi.getAttractions(dest, radiusMiles, retries - 1);
+        return await travelApi.getAttractions(dest, radiusMiles, signal, retries - 1);
       }
       console.warn("Skipping attractions due to Overpass API limits.");
       return []; 
@@ -191,37 +205,43 @@ export const travelApi = {
   },
 
   // 6. Fetch Tours/Activities (Amadeus)
-  getTours: async (dest: any, radiusMiles: number) => {
+  getTours: async (dest: any, radiusMiles: number, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/activities/nearby`, {
         params: {
           lat: dest.lat,
           lon: dest.lon,
           radius_miles: radiusMiles
-        }
+        },
+        signal
       });
       
-      // 🌟 FIX: Safely extract array from Amadeus data object
       const responseData = response.data;
       return Array.isArray(responseData) ? responseData : (responseData?.data || []);
       
     } catch (error) {
+      if (axios.isCancel(error)) return [];
       return [];
     }
   },
 
   // 7. Generate PDF Itinerary
-  exportPdf: async (data: any) => {
+  exportPdf: async (data: any, signal?: AbortSignal) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/trips/generate-pdf`, data, {
         responseType: 'blob', 
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        signal
       });
       return response.data;
     } catch (error) {
-      console.error("Failed to generate PDF:", error);
+      if (axios.isCancel(error)) {
+        console.log("PDF generation cancelled by user");
+      } else {
+        console.error("Failed to generate PDF:", error);
+      }
       return null;
     }
   }

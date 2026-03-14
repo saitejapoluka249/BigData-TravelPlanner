@@ -1,116 +1,33 @@
+# 🌍 WanderPlan US | Big Data Travel Planner
 
+WanderPlan US is a comprehensive, full-stack travel planning application that leverages big data to generate highly customized itineraries. It aggregates flights, driving routes, local stays, real-time weather, attractions, and local tours into a single, seamless, and responsive interface.
 
-# ✈️ AI-Powered Travel Planner
+## 🏗️ Project Architecture
 
-A modern, full-stack travel orchestration platform built with **Next.js 15**, **FastAPI**, and **Elasticsearch**. This project uses a modular Docker architecture to manage independent frontend and backend lifecycles.
+This project is structured as a monorepo containing two primary environments:
 
-## 🏗️ System Architecture
+* **`/frontend`**: A Next.js (React) application styled with Tailwind CSS, featuring interactive routing, responsive layouts, and dynamic maps via Leaflet.
+* **`/backend`**: A robust Python FastAPI backend that handles external API integrations, geographic calculations, and data aggregations.
 
-* **Frontend**: Next.js 15 (App Router) with Tailwind CSS and Lucide icons.
-* **Backend**: FastAPI (Python 3.10) with asynchronous request handling.
-* **Search Engine**: Elasticsearch 8.x for `search-as-you-type` city and airport autocomplete.
-* **Cache/Analytics**: Redis for tracking trending locations and session caching.
-* **Data Sources**: Amadeus API (Flights/Hotels) and OpenStreetMap (GPS Reverse Geocoding).
-
----
+## ✨ Core Features
+* **Multi-Modal Travel**: Compare flight data vs. driving routes (including distance, time, and waypoints).
+* **Interactive Mapping**: Dynamic Leaflet maps with custom markers for visualizing trips.
+* **Comprehensive Itineraries**: View hotels, attractions, tours, and weather forecasts tailored to specific travel dates and budgets.
+* **Responsive UI**: A universal layout with a collapsible sidebar for mobile/tablet and a side-by-side persistent map for desktop views.
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
+### Prerequisites
+* [Node.js](https://nodejs.org/) (v18+)
+* [Python](https://www.python.org/) (3.10+)
+* [Docker](https://www.docker.com/) (Optional, for containerized deployments)
 
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
-* An Amadeus Developer API Key.
+### Running the Project Locally
 
-### 2. Network & Volume Setup
+1.  **Start the Backend**:
+    Navigate to the `backend` directory, install the Python dependencies, and run the FastAPI server. (See `backend/README.md` for detailed instructions).
+2.  **Start the Frontend**:
+    Navigate to the `frontend` directory, install the Node modules, and run the Next.js development server. (See `frontend/README.md` for detailed instructions).
 
-Before launching the containers, create the shared infrastructure:
-
-```bash
-# Create the bridge network for inter-container communication
-docker network create travel-app-network
-
-# Create the persistent volume for Elasticsearch data
-docker volume create travel_es_data
-
-```
-
-### 3. Backend & Database Launch
-
-```bash
-cd backend
-# Add your AMADEUS_CLIENT_ID and SECRET to .env
-docker compose up --build -d
-
-```
-
-* **API Documentation**: `http://localhost:8000/docs`
-* **Elasticsearch Status**: `http://localhost:9200`
-
-### 4. Frontend Launch
-
-```bash
-cd frontend
-docker compose up --build -d
-
-```
-
-* **Application URL**: `http://localhost:3000`
-
----
-
-## 🛠️ Key Features
-
-### 🔍 Smart Search Service
-
-Uses Elasticsearch to provide instant city and airport suggestions.
-
-* **City Detection**: Internal Elasticsearch index with fuzzy matching.
-* **Airport Detection**: Fallback to Amadeus API for IATA codes.
-* **GPS Support**: One-click "Nearest City" detection using the browser Geolocation API and Nominatim.
-
-### 🍪 Global State Persistence
-
-The search state (source, destination, dates, budget) is synchronized across the application using `js-cookie`. This allows the Trip Generator and Map services to access user preferences without redundant API calls.
-
----
-
-## 📂 Project Structure
-
-```text
-├── backend/
-│   ├── app/
-│   │   ├── api/             # API Endpoints (locations, trips)
-│   │   ├── core/            # Config, Security, and DB init
-│   │   └── services/        # Third-party API integrations
-│   ├── Dockerfile           # Python 3.10-slim + Build tools
-│   └── docker-compose.yml   # FastAPI + Redis + Elasticsearch
-├── frontend/
-│   ├── app/
-│   │   ├── components/      # Sidebar.tsx, Map.tsx, UI elements
-│   │   └── layout.tsx       # Global Sidebar integration
-│   ├── Dockerfile           # Node 20-alpine
-│   └── docker-compose.yml   # Next.js Service
-└── README.md
-
-```
-
----
-
-## 🔧 Troubleshooting
-
-| Issue | Solution |
-| --- | --- |
-| **"ModuleNotFoundError: elasticsearch"** | Ensure `elasticsearch` is in `backend/requirements.txt` and run `docker compose build --no-cache`. |
-| **"Next.js requires Node >=20"** | The provided `frontend/Dockerfile` uses `node:20-alpine` to satisfy this. |
-| **GPS not working** | Browsers require `localhost` or `HTTPS` for geolocation. Ensure your API_BASE_URL is correct. |
-| **Elasticsearch not reachable** | Verify both compose files are using the same external network: `travel-app-network`. |
-
----
-
-## 📜 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-**Would you like me to add a "Contribution Guide" section explaining how to add new API endpoints to the backend?**
+## 🐳 Docker Setup
+Both the frontend and backend include `Dockerfile` and `docker-compose.yml` configurations. You can spin up the individual services using Docker to ensure consistent environments.

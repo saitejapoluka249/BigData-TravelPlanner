@@ -1,4 +1,4 @@
-// larry6683/big-data-project-travel-app/frontend/components/search/Sidebar.tsx
+// frontend/components/search/Sidebar.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -8,6 +8,7 @@ import LocationAutocomplete from "./LocationAutoComplete";
 interface SidebarProps {
   onSearch: (params: any) => void;
   onSearchStart?: () => void; 
+  onCancel?: () => void;
   loading?: boolean;
   onClose?: () => void; 
 }
@@ -21,7 +22,7 @@ const INTEREST_CATEGORIES = [
   { id: 'transit', label: '🛣️ Transit' }
 ];
 
-export default function Sidebar({ onSearch, onSearchStart, loading, onClose }: SidebarProps) {
+export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, onClose }: SidebarProps) {
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
   
@@ -207,14 +208,12 @@ export default function Sidebar({ onSearch, onSearchStart, loading, onClose }: S
 
   return (
     <>
-      <div className="w-[80vw] max-w-[320px] lg:w-[20vw] lg:max-w-none h-screen bg-slate-900 border-r border-slate-200/10 px-[18px] py-6 flex flex-col gap-5 font-sans overflow-y-auto text-white">
+      <div className="w-[80vw] max-w-[320px] lg:w-[20vw] lg:max-w-none h-screen bg-slate-900 border-r border-slate-200/10 px-[12px] py-4 flex flex-col gap-5 font-sans overflow-y-auto text-white">
         
-        <div className="pb-2.5 border-b border-slate-800 flex justify-between items-start">
-          <div>
+        <div className="pb-4 border-b border-slate-800 shadow-md flex justify-between items-start -mx-[18px] px-[18px]">          <div>
             <div className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
               WanderPlan <span className="text-blue-600">US</span>
             </div>
-            <div className="text-[11px] text-[#c2c2c2] mt-1">Plan Your Trip</div>
           </div>
 
           {onClose && (
@@ -228,6 +227,7 @@ export default function Sidebar({ onSearch, onSearchStart, loading, onClose }: S
         </div>
 
         <div>
+      <div className="text-[11px] text-[#c2c2c2] mb-4">Plan Your Trip</div>
           <SbLabel>Source</SbLabel>
           <LocationAutocomplete 
             placeholder="eg. NEW YORK, NY" 
@@ -371,17 +371,30 @@ export default function Sidebar({ onSearch, onSearchStart, loading, onClose }: S
           </div>
         </div>
 
-        <button 
-          className={`w-full p-4 rounded-2xl border-none font-inherit text-sm font-bold flex items-center justify-center gap-2 mt-auto transition-all duration-150 ${isWorking ? 'bg-slate-400 text-white cursor-not-allowed' : 'bg-blue-600 text-white cursor-pointer shadow-[0_4px_15px_rgba(37,99,235,0.3)] hover:bg-blue-600 active:scale-[0.98]'}`}
-          onClick={handleSearchSubmit} 
-          disabled={isWorking}
-        >
-          {isWorking ? (
-            <><Loader2 size={17} className="animate-spin" /> Gathering Details...</>
+        <div className="mt-auto pt-4">
+          {!isWorking ? (
+            <button 
+              className="w-full p-4 rounded-2xl bg-blue-600 text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-[0_4px_15px_rgba(37,99,235,0.3)] active:scale-[0.98]"
+              onClick={handleSearchSubmit} 
+            >
+              <Search size={17} /> SUBMIT
+            </button>
           ) : (
-            <><Search size={17} /> SUBMIT</>
+            <div className="flex gap-2 h-[52px]">
+              <div className="flex-1 rounded-2xl bg-slate-800 text-slate-300 font-bold flex items-center justify-center gap-2 border border-slate-700">
+                <Loader2 size={17} className="animate-spin" />
+                <span className="text-xs tracking-wider">GATHERING...</span>
+              </div>
+              <button 
+                onClick={onCancel}
+                title="Cancel Search"
+                className="w-[52px] rounded-2xl bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all shadow-lg active:scale-95"
+              >
+                <X size={20} />
+              </button>
+            </div>
           )}
-        </button>
+        </div>
       </div>
     </>
   );

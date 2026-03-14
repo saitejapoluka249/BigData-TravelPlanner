@@ -1,4 +1,4 @@
-// larry6683/big-data-project-travel-app/frontend/components/results/ToursCard.jsx
+// larry6683/big-data-project-travel-app/frontend/components/results/TourCard.jsx
 
 import React, { useState, useEffect } from 'react';
 
@@ -52,7 +52,8 @@ export default function ToursCard({ tours }) {
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
       <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-4">🗺️ Local Tours & Experiences</h3>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {/* 🌟 CHANGED: Updated to xl:grid-cols-2 so tablets strictly get 1 column */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         {tours.map((tour, idx) => {
           const uniqueKey = tour.id || `tour-${idx}`;
           const isSelected = selectedKeys.includes(uniqueKey);
@@ -60,11 +61,9 @@ export default function ToursCard({ tours }) {
           return (
             <div 
               key={uniqueKey} 
-              // 🌟 CHANGED: Removed sm:flex-row to force the mobile stacked layout everywhere
               className={`border rounded-xl p-4 transition-colors shadow-sm flex flex-col gap-4 ${isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-100/10' : 'bg-white hover:shadow-md'}`}
             >
               
-              {/* 🌟 CHANGED: Updated image classes for a nice wide banner look */}
               {tour.picture_url ? (
                 <img src={tour.picture_url} alt={tour.name} className="w-full h-40 md:h-48 object-cover rounded-lg shrink-0 shadow-sm border border-gray-200" />
               ) : (
@@ -75,8 +74,10 @@ export default function ToursCard({ tours }) {
               
               <div className="flex flex-col flex-1 justify-between overflow-hidden">
                 <div>
-                  <div className="flex justify-between items-start gap-2">
-                    <h4 className="font-bold text-gray-800 text-base leading-tight mb-1" title={tour.name}>
+                  
+                  {/* 🌟 Flex-wrap fix for the checkbox title from earlier */}
+                  <div className="flex flex-wrap justify-between items-start gap-3">
+                    <h4 className="font-bold text-gray-800 text-base leading-tight mb-1 flex-1 min-w-[150px]" title={tour.name}>
                       {tour.name}
                     </h4>
 
@@ -91,9 +92,9 @@ export default function ToursCard({ tours }) {
                         {isSelected ? 'Selected' : 'Select'}
                       </span>
                     </label>
-
                   </div>
-                  <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed mt-1" title={tour.short_description}>
+                  
+                  <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed mt-2" title={tour.short_description}>
                     {tour.short_description || "Experience the best of the local culture and sights with this guided activity."}
                   </p>
                 </div>
