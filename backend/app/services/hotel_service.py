@@ -113,13 +113,31 @@ class HotelService(BaseAmadeusClient):
             try:
                 print(f"🔄 Fetching specific offer for hotel {hotel_id}...")
                 offer_response = await client.get(offer_url, headers=headers, params=offer_params, timeout=30.0)
+# Inside hotel_service.py -> get_specific_hotel_offer Success Block
+
                 if offer_response.status_code == 200:
                     offers_data = offer_response.json().get("data", [])
-                    if offers_data and "offers" in offers_data[0] and offers_data[0]["offers"]:
+                    if offers_data and "offers" in offers_data[0]:
                         item = offers_data[0]
-                        best_offer = item["offers"][0]
+                        rooms = []
                         
-                        offer_obj = HotelOffer(
+                        for o in item["offers"]:
+                            room_data = o.get("room", {})
+                            type_est = room_data.get("typeEstimated", {})
+                            
+                            rooms.append({
+                                "room_name": type_est.get("category", "Standard Room").replace("_", " "),
+                                "description": room_data.get("description", {}).get("text", ""),
+                                "category": type_est.get("category", "Room").replace("_", " "),
+                                "bed_type": type_est.get("bedType", "Standard").replace("_", " "),
+                                "beds_count": type_est.get("beds", 1),
+                                "price": float(o["price"]["total"]),
+                                "currency": o["price"]["currency"],
+                                "amenities": o.get("amenities", [])
+                            })
+
+                        best_offer = item["offers"][0]
+                        return HotelOffer(
                             hotel_id=hotel_id,
                             name=item["hotel"].get("name"),
                             check_in_date=best_offer.get("checkInDate"),
@@ -129,9 +147,8 @@ class HotelService(BaseAmadeusClient):
                             currency=best_offer["price"]["currency"],
                             latitude=item["hotel"].get("latitude"),
                             longitude=item["hotel"].get("longitude"),
-                            address=None
-                        )
-                        return offer_obj.model_dump()
+                            rooms=rooms
+                        ).model_dump()
             except Exception as e:
                 return {"error": str(e)}
 

@@ -8,6 +8,7 @@ import AttractionsCard from './AttractionCard';
 import DrivingCard from './DrivingCard';
 import ToursCard from './TourCard'; 
 import { Loader2 } from 'lucide-react';
+import StayCard from './StayCard';
 
 type TabOption = 'flights' | 'drive' | 'stays' | 'weather' | 'attractions' | 'tours';
 
@@ -141,7 +142,10 @@ export default function TripResults({ data, loading }: { data: any, loading: boo
         )}
         
         {activeTab === 'stays' && (
-          <StaysCard stays={data?.stays || []} />
+          <StaysCard 
+            stays={data?.stays || []} 
+            searchParams={data?.rawParams} 
+          />
         )}
         
         {activeTab === 'attractions' && (

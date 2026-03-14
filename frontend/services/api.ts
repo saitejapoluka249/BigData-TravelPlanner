@@ -154,6 +154,27 @@ export const travelApi = {
     }
   },
 
+  // 🌟 ADDED THIS FUNCTION 🌟
+  // 3b. Fetch Specific Hotel Offer
+  getHotelOffer: async (hotelId: string, params: any, signal?: AbortSignal) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/hotels/offer`, {
+        params: {
+          hotel_id: hotelId,
+          check_in_date: params.startDate,
+          check_out_date: params.endDate,
+          adults: params.adults
+        },
+        signal
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isCancel(error)) return null;
+      // Fail silently for individual hotels that might have expired
+      return { error: true }; 
+    }
+  },
+
   // 4. Fetch Weather (OpenWeather)
   getWeather: async (dest: any, dates: any, signal?: AbortSignal) => {
     try {
