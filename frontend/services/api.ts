@@ -4,6 +4,11 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
+const getAuthHeaders = () => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 if (!API_BASE_URL) {
   console.error("🚨 NEXT_PUBLIC_API_URL is missing! Please check your frontend/.env.local file.");
 }
@@ -57,9 +62,33 @@ export const travelApi = {
     }
   },
 
+  saveTrip: async (tripData: any) => {
+    const response = await axios.post(`${API_BASE_URL}/trips/save`, tripData, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  },
+
+  getMyTrips: async () => {
+    const response = await axios.get(`${API_BASE_URL}/trips/me`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  },
+  signup: async (username: string, password: string) => {
+    const { data } = await axios.post(`${API_BASE_URL}/auth/signup`, { username, password });
+    return data;
+  },
+  login: async (username: string, password: string) => {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
+    const { data } = await axios.post(`${API_BASE_URL}/auth/login`, formData);
+    return data;
+  },
+
   getDestinationData: async (params: any) => ({ lat: params?.destination?.lat, lon: params?.destination?.lon }),
 
-  // 1. Fetch Flights (Amadeus - Now Cached in Backend)
   getFlights: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       let originIata = params.source.iata;
@@ -85,7 +114,6 @@ export const travelApi = {
         ? 'BUSINESS,FIRST' 
         : 'ECONOMY,PREMIUM_ECONOMY';
 
-      // 🌟 Calls the backend endpoint which is now wrapped in @cache(expire=3600)
       const response = await axios.get(`${API_BASE_URL}/flights/search`, {
         params: {
           origin: originIata || 'JFK',
@@ -109,7 +137,6 @@ export const travelApi = {
     }
   },
 
-  // 2. Fetch Driving Route (OSRM)
   getDriving: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/driving/route`, {
@@ -129,7 +156,13 @@ export const travelApi = {
     }
   },
 
-  // 3. Fetch Stays (Amadeus - Now Cached in Backend)
+  deleteTrip: async (tripId: number) => {
+    const response = await axios.delete(`${API_BASE_URL}/trips/${tripId}`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  },
+
   getStays: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       const radiusKm = Math.round(params.radius * 1.60934); 
@@ -155,7 +188,6 @@ export const travelApi = {
     }
   },
 
-  // 3b. Fetch Specific Hotel Offer
   getHotelOffer: async (hotelId: string, params: any, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/hotels/offer`, {
@@ -174,7 +206,6 @@ export const travelApi = {
     }
   },
 
-  // 4. Fetch Weather (OpenWeather - Now Cached in Backend)
   getWeather: async (dest: any, dates: any, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/weather/forecast`, {
@@ -194,7 +225,6 @@ export const travelApi = {
     }
   },
 
-  // 5. Fetch Attractions (OSM - Now Cached in Backend)
   getAttractions: async (dest: any, radiusMiles: number, signal?: AbortSignal, retries = 2): Promise<any> => {
     try {
       const response = await axios.get(`${API_BASE_URL}/attractions/nearby`, {
@@ -224,7 +254,6 @@ export const travelApi = {
     }
   },
 
-  // 6. Fetch Tours/Activities (Amadeus - Now Cached in Backend)
   getTours: async (dest: any, radiusMiles: number, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/activities/nearby`, {
@@ -245,7 +274,6 @@ export const travelApi = {
     }
   },
 
-  // 7. Generate PDF Itinerary
   exportPdf: async (data: any, signal?: AbortSignal) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/trips/generate-pdf`, data, {

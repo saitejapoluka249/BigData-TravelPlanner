@@ -42,7 +42,7 @@ app = get_application()
 @app.on_event("startup")
 async def startup():
     redis_url = os.getenv("REDIS_URL", "redis://redis:6379")
-    redis = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
+    redis = aioredis.from_url(redis_url, encoding="utf8", decode_responses=False)
     FastAPICache.init(RedisBackend(redis), prefix="wanderplan-cache")
 
 @app.get("/")
