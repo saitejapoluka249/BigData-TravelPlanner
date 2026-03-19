@@ -75,10 +75,15 @@ export const travelApi = {
     });
     return response.data;
   },
-  signup: async (username: string, password: string) => {
-    const { data } = await axios.post(`${API_BASE_URL}/auth/signup`, { username, password });
-    return data;
-  },
+// Find your existing signup function and replace it with this:
+signup: async (formData: FormData) => {
+  const { data } = await axios.post(`${API_BASE_URL}/auth/signup`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return data;
+},
   login: async (username: string, password: string) => {
     const formData = new FormData();
     formData.append('username', username);
