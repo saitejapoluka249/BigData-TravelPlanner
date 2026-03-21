@@ -4,6 +4,11 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
+const getAuthHeaders = () => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 if (!API_BASE_URL) {
   console.error("🚨 NEXT_PUBLIC_API_URL is missing! Please check your frontend/.env.local file.");
 }
@@ -57,9 +62,56 @@ export const travelApi = {
     }
   },
 
+  saveTrip: async (tripData: any) => {
+    const response = await axios.post(`${API_BASE_URL}/trips/save`, tripData, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  },
+
+  getMyTrips: async () => {
+    const response = await axios.get(`${API_BASE_URL}/trips/me`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  },
+// Find your existing signup function and replace it with this:
+signup: async (formData: FormData) => {
+  const { data } = await axios.post(`${API_BASE_URL}/auth/signup`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return data;
+},
+  login: async (username: string, password: string) => {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
+    const { data } = await axios.post(`${API_BASE_URL}/auth/login`, formData);
+    return data;
+  },
+  // --- NEW PROFILE METHODS ---
+  getProfile: async () => {
+    const response = await axios.get(`${API_BASE_URL}/users/me`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  },
+
+  updateProfile: async (formData: FormData) => {
+    // Note: We pass the raw FormData object here so axios correctly sets multipart/form-data headers
+    const response = await axios.put(`${API_BASE_URL}/users/me`, formData, {
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
   getDestinationData: async (params: any) => ({ lat: params?.destination?.lat, lon: params?.destination?.lon }),
 
-  // 1. Fetch Flights (Amadeus)
   getFlights: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       let originIata = params.source.iata;
@@ -108,7 +160,6 @@ export const travelApi = {
     }
   },
 
-  // 2. Fetch Driving Route (OSRM)
   getDriving: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/driving/route`, {
@@ -128,7 +179,13 @@ export const travelApi = {
     }
   },
 
-  // 3. Fetch Stays (Amadeus)
+  deleteTrip: async (tripId: number) => {
+    const response = await axios.delete(`${API_BASE_URL}/trips/${tripId}`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  },
+
   getStays: async (params: TripSearchParams, signal?: AbortSignal) => {
     try {
       const radiusKm = Math.round(params.radius * 1.60934); 
@@ -154,8 +211,6 @@ export const travelApi = {
     }
   },
 
-  // 🌟 ADDED THIS FUNCTION 🌟
-  // 3b. Fetch Specific Hotel Offer
   getHotelOffer: async (hotelId: string, params: any, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/hotels/offer`, {
@@ -170,12 +225,10 @@ export const travelApi = {
       return response.data;
     } catch (error) {
       if (axios.isCancel(error)) return null;
-      // Fail silently for individual hotels that might have expired
       return { error: true }; 
     }
   },
 
-  // 4. Fetch Weather (OpenWeather)
   getWeather: async (dest: any, dates: any, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/weather/forecast`, {
@@ -195,7 +248,6 @@ export const travelApi = {
     }
   },
 
-  // 5. Fetch Attractions (OSM)
   getAttractions: async (dest: any, radiusMiles: number, signal?: AbortSignal, retries = 2): Promise<any> => {
     try {
       const response = await axios.get(`${API_BASE_URL}/attractions/nearby`, {
@@ -225,7 +277,6 @@ export const travelApi = {
     }
   },
 
-  // 6. Fetch Tours/Activities (Amadeus)
   getTours: async (dest: any, radiusMiles: number, signal?: AbortSignal) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/activities/nearby`, {
@@ -246,7 +297,6 @@ export const travelApi = {
     }
   },
 
-  // 7. Generate PDF Itinerary
   exportPdf: async (data: any, signal?: AbortSignal) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/trips/generate-pdf`, data, {

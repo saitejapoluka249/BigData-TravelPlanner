@@ -1,33 +1,50 @@
 # backend/app/api/v1/endpoints/trips.py
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Depends, Response, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from fpdf import FPDF
+
+from app.db.database import get_db
+from app.db.models import User, SavedTrip
+from app.api.v1.deps import get_current_user
 from app.schemas.trip import TripGenerateRequest
-from fpdf import FPDF 
+
 router = APIRouter()
+
+def sanitize_text(text: str) -> str:
+    if not text:
+        return ""
+    return str(text).encode('latin-1', 'replace').decode('latin-1')
 
 @router.post("/generate-pdf")
 async def generate_trip_pdf(payload: TripGenerateRequest):
     pdf = FPDF()
     pdf.add_page()
     
+    safe_destination = sanitize_text(payload.destination)
+    safe_username = sanitize_text(payload.username)
+    
     # Title
     pdf.set_font("helvetica", "B", 24)
-    pdf.cell(0, 15, f"Trip Itinerary: {payload.destination}", ln=True, align="C")
+    pdf.cell(0, 15, f"Trip Itinerary: {safe_destination}", ln=True, align="C")
     
     # Subheader
     pdf.set_font("helvetica", "I", 12)
-    pdf.cell(0, 10, f"Prepared for: {payload.username}", ln=True, align="C")
+    pdf.cell(0, 10, f"Prepared for: {safe_username}", ln=True, align="C")
     pdf.cell(0, 10, f"Dates: {payload.check_in_date} to {payload.check_out_date}", ln=True, align="C")
     pdf.ln(10)
 
-    # Weather Section
     if payload.weather:
         pdf.set_font("helvetica", "B", 16)
         pdf.cell(0, 10, "Weather Forecast", ln=True)
         pdf.set_font("helvetica", "", 12)
-        current = payload.weather.get('current', {})
-        temp = current.get('temp', 'N/A')
-        desc = current.get('description', 'N/A')
-        pdf.multi_cell(0, 8, f"Expect {desc} with an average temperature of {temp}F.")
+        
+        if "error" in payload.weather:
+            weather_text = sanitize_text(payload.weather["error"])
+        else:
+            weather_text = sanitize_text(payload.weather.get("overall_summary", "Weather data unavailable."))
+            
+        pdf.multi_cell(0, 8, weather_text)
         pdf.ln(5)
 
     # Flight Section
@@ -35,10 +52,13 @@ async def generate_trip_pdf(payload: TripGenerateRequest):
         pdf.set_font("helvetica", "B", 16)
         pdf.cell(0, 10, "Flight Details", ln=True)
         pdf.set_font("helvetica", "", 12)
-        airline = payload.flight.get('airline_name', 'Unknown Airline')
-        price = payload.flight.get('price', {}).get('total', 'N/A')
-        if isinstance(payload.flight.get('price'), (int, float)): # Handle flat price
-            price = payload.flight.get('price')
+        
+        airline = sanitize_text(payload.flight.get('airline_name', 'Unknown Airline'))
+        raw_price = payload.flight.get('price')
+        if isinstance(raw_price, dict):
+            price = raw_price.get('total', 'N/A')
+        else:
+            price = raw_price if raw_price is not None else 'N/A'
             
         pdf.multi_cell(0, 8, f"Airline: {airline}\nTotal Price: ${price}")
         pdf.ln(5)
@@ -48,9 +68,11 @@ async def generate_trip_pdf(payload: TripGenerateRequest):
         pdf.set_font("helvetica", "B", 16)
         pdf.cell(0, 10, "Hotel Details", ln=True)
         pdf.set_font("helvetica", "", 12)
-        name = payload.hotel.get('name', 'Unknown Hotel')
-        # Extract price from either root or offerDetails
-        price = payload.hotel.get('price') or payload.hotel.get('offerDetails', {}).get('price', 'N/A')
+        
+        name = sanitize_text(payload.hotel.get('name', 'Unknown Hotel'))
+        raw_hotel_price = payload.hotel.get('price') or payload.hotel.get('offerDetails', {}).get('price')
+        price = raw_hotel_price if raw_hotel_price is not None else 'N/A'
+        
         pdf.multi_cell(0, 8, f"Hotel: {name}\nPrice: ${price}")
         pdf.ln(5)
 
@@ -60,7 +82,7 @@ async def generate_trip_pdf(payload: TripGenerateRequest):
         pdf.cell(0, 10, "Selected Attractions", ln=True)
         pdf.set_font("helvetica", "", 12)
         for attr in payload.attractions:
-            name = attr.get('name', 'Point of Interest')
+            name = sanitize_text(attr.get('name', 'Point of Interest'))
             pdf.cell(0, 8, f"- {name}", ln=True)
         pdf.ln(5)
 
@@ -70,13 +92,63 @@ async def generate_trip_pdf(payload: TripGenerateRequest):
         pdf.cell(0, 10, "Activities & Tours", ln=True)
         pdf.set_font("helvetica", "", 12)
         for activity in payload.activities:
-            name = activity.get('name', 'Activity')
-            price = activity.get('price', {}).get('amount', 'N/A')
+            name = sanitize_text(activity.get('name', 'Activity'))
+            act_price_data = activity.get('price', {})
+            if isinstance(act_price_data, dict):
+                price = act_price_data.get('amount', 'N/A')
+            else:
+                price = act_price_data
+                
             pdf.cell(0, 8, f"- {name} (${price})", ln=True)
         pdf.ln(5)
+
+    safe_filename = "".join([c for c in safe_destination if c.isalpha() or c.isdigit()]).rstrip()
+    if not safe_filename:
+        safe_filename = "Itinerary"
 
     return Response(
         content=bytes(pdf.output()), 
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{payload.destination}_Itinerary.pdf"'}
+        headers={"Content-Disposition": f'attachment; filename="{safe_filename}_Itinerary.pdf"'}
     )
+
+@router.post("/save")
+async def save_trip(
+    payload: dict, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    new_trip = SavedTrip(
+        destination=payload.get("destination", "My Trip"),
+        data=payload,
+        user_id=current_user.id
+    )
+    db.add(new_trip)
+    db.commit()
+    return {"message": "Trip saved successfully"}
+
+@router.get("/me", response_model=List[dict])
+async def get_my_trips(
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    trips = db.query(SavedTrip).filter(SavedTrip.user_id == current_user.id).all()
+    return [{"id": t.id, "destination": t.destination, "data": t.data} for t in trips]
+
+@router.delete("/{trip_id}")
+async def delete_trip(
+    trip_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    trip = db.query(SavedTrip).filter(
+        SavedTrip.id == trip_id, 
+        SavedTrip.user_id == current_user.id
+    ).first()
+    
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+        
+    db.delete(trip)
+    db.commit()
+    return {"message": "Trip deleted successfully"}
