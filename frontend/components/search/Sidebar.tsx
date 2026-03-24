@@ -189,7 +189,6 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
   const isWorking = loading || isGeocoding;
   const nightCount = dates.start && dates.end ? Math.max(0, Math.ceil((new Date(dates.end).getTime() - new Date(dates.start).getTime()) / 86400000)) : 0;
   
-  // Helper to format DatePicker output nicely to YYYY-MM-DD
   const formatDate = (date: Date) => {
     const offset = date.getTimezoneOffset();
     const localDate = new Date(date.getTime() - (offset * 60 * 1000));
@@ -200,19 +199,19 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
 
   return (
     <>
-      <div className="w-[20vw] lg:w-[20vw] min-w-[300px] h-[100dvh] bg-deep-forest border-r border-canopy/20 flex flex-col font-sans text-parchment">        
+      <div className="w-[20vw] lg:w-[20vw] min-w-[300px] h-[100dvh] bg-theme-text border-r border-theme-secondary/20 flex flex-col font-sans text-theme-bg">        
         {/* FIXED HEADER */}
-        <div className="p-4 border-b border-canopy/20 shadow-md flex justify-between items-start shrink-0">          
+        <div className="p-4 border-b border-theme-secondary/20 shadow-md flex justify-between items-start shrink-0">          
           <div>
-            <div className="text-2xl font-extrabold text-parchment tracking-tight flex items-center gap-2">
-              WanderPlan <span className="text-sage">US</span>
+            <div className="text-2xl font-extrabold text-theme-bg tracking-tight flex items-center gap-2">
+              WanderPlan <span className="text-theme-muted">US</span>
             </div>
           </div>
 
           {onClose && (
             <button
               onClick={onClose}
-              className="lg:hidden p-1.5 rounded-lg text-parchment/60 hover:text-parchment hover:bg-parchment/10 transition-colors"
+              className="lg:hidden p-1.5 rounded-lg text-theme-bg/60 hover:text-theme-bg hover:bg-theme-bg/10 transition-colors"
             >
               <X size={20} />
             </button>
@@ -222,7 +221,7 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
         {/* SCROLLABLE CONTENT */}
         <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-5 custom-scrollbar pb-6">
           <div>
-            <div className="text-[11px] text-parchment/70 mb-4">Plan Your Trip</div>
+            <div className="text-[11px] text-theme-bg/70 mb-4">Plan Your Trip</div>
             <SbLabel>Source</SbLabel>
             <LocationAutocomplete 
               placeholder="eg. NEW YORK, NY" 
@@ -257,12 +256,12 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
           <div>
             <SbLabel>
               Travel Dates{" "}
-              {nightCount > 0 && <span className="font-normal text-parchment/60 text-[10.5px]">· {nightCount} night{nightCount !== 1 ? "s" : ""}</span>}
+              {nightCount > 0 && <span className="font-normal text-theme-bg/60 text-[10.5px]">· {nightCount} night{nightCount !== 1 ? "s" : ""}</span>}
             </SbLabel>
             
             <div className="flex flex-wrap gap-2">
                 <div className="flex-1 min-w-[120px] relative">
-                <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-canopy pointer-events-none z-10" />
+                <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-secondary pointer-events-none z-10" />
                 <DatePicker
                   selected={dates.start ? new Date(dates.start + "T12:00:00") : null}
                   onChange={(date: Date | null): void => {
@@ -281,13 +280,13 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
                   minDate={new Date()}
                   placeholderText="Start..."
                   popperPlacement="bottom-start"
-                  className={`w-full py-[9px] pl-8 pr-3 bg-parchment border-[1.5px] ${errors.start ? 'border-red-500' : 'border-canopy/30'} rounded-[10px] font-semibold text-[13px] text-deep-forest focus:border-canopy focus:ring-1 focus:ring-canopy outline-none`}
+                  className={`w-full py-[9px] pl-8 pr-3 bg-theme-bg border-[1.5px] ${errors.start ? 'border-red-500' : 'border-theme-secondary/30'} rounded-[10px] font-semibold text-[13px] text-theme-text focus:border-theme-secondary focus:ring-1 focus:ring-theme-secondary outline-none`}
                 />
                 {errors.start && <span className="text-red-400 text-[11px] mt-1 block font-medium">{errors.start}</span>}
                 </div>
               
               <div className="flex-1 min-w-[120px] relative">
-                <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-canopy pointer-events-none z-10" />
+                <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-secondary pointer-events-none z-10" />
                 <DatePicker
                   selected={dates.end ? new Date(dates.end + "T12:00:00") : null}
                   onChange={(date: Date | null) => {
@@ -299,7 +298,7 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
                   minDate={minEndDate}
                   placeholderText="End..."
                   popperPlacement="bottom-start"
-                  className={`w-full py-[9px] pl-8 pr-3 bg-parchment border-[1.5px] ${errors.end ? 'border-red-500' : 'border-canopy/30'} rounded-[10px] font-semibold text-[13px] text-deep-forest focus:border-canopy focus:ring-1 focus:ring-canopy outline-none`}
+                  className={`w-full py-[9px] pl-8 pr-3 bg-theme-bg border-[1.5px] ${errors.end ? 'border-red-500' : 'border-theme-secondary/30'} rounded-[10px] font-semibold text-[13px] text-theme-text focus:border-theme-secondary focus:ring-1 focus:ring-theme-secondary outline-none`}
                 />
                 {errors.end && <span className="text-red-400 text-[11px] mt-1 block font-medium">{errors.end}</span>}
               </div>
@@ -319,12 +318,12 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
 
           <div>
             <SbLabel>Budget Category</SbLabel>
-            <div className="flex bg-parchment rounded-[10px] p-[3px] gap-[3px]">
+            <div className="flex bg-theme-bg rounded-[10px] p-[3px] gap-[3px]">
               {(["budget", "luxury"] as const).map((opt) => (
                   <button 
                     key={opt} 
                     onClick={() => setBudget(opt)} 
-                    className={`flex-1 py-[7px] rounded-lg border-none font-inherit text-[12.5px] cursor-pointer transition-all duration-150 hover:opacity-85 ${budget === opt ? 'bg-forest-green font-bold text-parchment shadow-[0_1px_4px_rgba(0,0,0,0.1)]' : 'bg-transparent font-normal text-deep-forest/70'}`}
+                    className={`flex-1 py-[7px] rounded-lg border-none font-inherit text-[12.5px] cursor-pointer transition-all duration-150 hover:opacity-85 ${budget === opt ? 'bg-theme-primary font-bold text-theme-bg shadow-[0_1px_4px_rgba(0,0,0,0.1)]' : 'bg-transparent font-normal text-theme-text/70'}`}
                   >
                     {opt === "budget" ? "💰 Budget" : "✨ Luxury"}
                   </button>
@@ -334,12 +333,12 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
 
           <div>
             <SbLabel>Travel Mode</SbLabel>
-            <div className="flex bg-parchment rounded-[10px] p-[3px] gap-[3px]">
+            <div className="flex bg-theme-bg rounded-[10px] p-[3px] gap-[3px]">
               {(["fly", "drive"] as const).map((opt) => (
                   <button 
                     key={opt} 
                     onClick={() => setTravelMode(opt)} 
-                    className={`flex-1 py-[7px] rounded-lg border-none font-inherit text-[12.5px] cursor-pointer transition-all duration-150 hover:opacity-85 ${travelMode === opt ? 'bg-forest-green font-bold text-parchment shadow-[0_1px_4px_rgba(0,0,0,0.1)]' : 'bg-transparent font-normal text-deep-forest/70'}`}
+                    className={`flex-1 py-[7px] rounded-lg border-none font-inherit text-[12.5px] cursor-pointer transition-all duration-150 hover:opacity-85 ${travelMode === opt ? 'bg-theme-primary font-bold text-theme-bg shadow-[0_1px_4px_rgba(0,0,0,0.1)]' : 'bg-transparent font-normal text-theme-text/70'}`}
                   >
                     {opt === "fly" ? "✈️ Fly" : "🚗 Drive"}
                   </button>
@@ -349,12 +348,12 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
 
           <div>
             <SbLabel>
-              Search Radius <span className="font-normal text-parchment/60">({radius} mi)</span>
+              Search Radius <span className="font-normal text-theme-bg/60">({radius} mi)</span>
             </SbLabel>
             <input
               type="range" min={1} max={25} step={1} value={radius}
               onChange={(e) => setRadius(parseInt(e.target.value))}
-              className="w-full cursor-pointer my-1 accent-forest-green" 
+              className="w-full cursor-pointer my-1 accent-theme-primary" 
             />
           </div>
 
@@ -365,7 +364,7 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
                   <button
                     key={category.id} 
                     onClick={() => handleInterestToggle(category.id)} 
-                    className={`px-2.5 py-1.5 rounded-2xl border-[1.5px] text-xs cursor-pointer transition-all duration-200 ${interests.includes(category.id) ? 'border-canopy bg-canopy/20 text-parchment/90' : 'border-canopy/30 bg-transparent text-parchment/70 hover:text-parchment hover:border-canopy/60'}`}
+                    className={`px-2.5 py-1.5 rounded-2xl border-[1.5px] text-xs cursor-pointer transition-all duration-200 ${interests.includes(category.id) ? 'border-theme-secondary bg-theme-secondary/20 text-theme-bg/90' : 'border-theme-secondary/30 bg-transparent text-theme-bg/70 hover:text-theme-bg hover:border-theme-secondary/60'}`}
                   >
                     {category.label}
                   </button>
@@ -375,18 +374,18 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
         </div>
 
         {/* FIXED FOOTER WITH SUBMIT BUTTON */}
-        <div className="p-4 bg-deep-forest border-t border-canopy/20 shrink-0">
+        <div className="p-4 bg-theme-text border-t border-theme-secondary/20 shrink-0">
           {!isWorking ? (
             <button 
-              className="w-full p-4 rounded-2xl bg-forest-green text-parchment text-sm font-bold flex items-center justify-center gap-2 hover:bg-canopy transition-all shadow-[0_4px_15px_rgba(58,100,50,0.3)] active:scale-[0.98]"
+              className="w-full p-4 rounded-2xl bg-theme-primary text-theme-bg text-sm font-bold flex items-center justify-center gap-2 hover:bg-theme-secondary transition-all shadow-[0_4px_15px_rgba(0,0,0,0.25)] active:scale-[0.98]"
               onClick={handleSearchSubmit} 
             >
               <Search size={17} /> SUBMIT
             </button>
           ) : (
             <div className="flex gap-2 h-[52px]">
-              <div className="flex-1 rounded-2xl bg-deep-forest border border-canopy/40 text-parchment/80 font-bold flex items-center justify-center gap-2">
-                <Loader2 size={17} className="animate-spin text-sage" />
+              <div className="flex-1 rounded-2xl bg-theme-text border border-theme-secondary/40 text-theme-bg/80 font-bold flex items-center justify-center gap-2">
+                <Loader2 size={17} className="animate-spin text-theme-muted" />
                 <span className="text-xs tracking-wider">GATHERING...</span>
               </div>
               <button 
@@ -405,15 +404,15 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
 }
 
 function SbLabel({ children }: { children: React.ReactNode }) {
-  return <div className="text-[10px] font-bold tracking-[0.1em] uppercase text-parchment/70 mb-1.5 ml-1">{children}</div>;
+  return <div className="text-[10px] font-bold tracking-[0.1em] uppercase text-theme-bg/70 mb-1.5 ml-1">{children}</div>;
 }
 
 function SbCounter({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (v: number) => void }) {
   return (
-    <div className="flex items-center gap-2.5 bg-parchment p-1 rounded-[10px] border-[1.5px] border-canopy/30 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-      <button className="w-[30px] h-[30px] border-[1.5px] border-canopy/30 rounded-lg bg-parchment text-deep-forest text-[17px] cursor-pointer hover:bg-canopy/10 transition-colors" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
-      <span className="flex-1 font-bold text-sm text-deep-forest text-center">{value}</span>
-      <button className="w-[30px] h-[30px] border-[1.5px] border-canopy/30 rounded-lg bg-parchment text-deep-forest text-[17px] cursor-pointer hover:bg-canopy/10 transition-colors" onClick={() => onChange(Math.min(max, value + 1))}>+</button>
+    <div className="flex items-center gap-2.5 bg-theme-bg p-1 rounded-[10px] border-[1.5px] border-theme-secondary/30 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+      <button className="w-[30px] h-[30px] border-[1.5px] border-theme-secondary/30 rounded-lg bg-theme-bg text-theme-text text-[17px] cursor-pointer hover:bg-theme-secondary/10 transition-colors" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
+      <span className="flex-1 font-bold text-sm text-theme-text text-center">{value}</span>
+      <button className="w-[30px] h-[30px] border-[1.5px] border-theme-secondary/30 rounded-lg bg-theme-bg text-theme-text text-[17px] cursor-pointer hover:bg-theme-secondary/10 transition-colors" onClick={() => onChange(Math.min(max, value + 1))}>+</button>
     </div>
   );
 }

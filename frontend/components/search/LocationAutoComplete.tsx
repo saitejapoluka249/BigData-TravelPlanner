@@ -13,7 +13,6 @@ interface Props {
   showGPS?: boolean;
 }
 
-// ─── main GPS resolver ───────────────────────────────────────────────────────
 async function resolveCoords(lat: number, lon: number): Promise<{city:string;state:string}|null> {
   try {
     const data = await travelApi.getNearestCity(lat, lon);
@@ -25,8 +24,6 @@ async function resolveCoords(lat: number, lon: number): Promise<{city:string;sta
   }
   return null;
 }
-
-// ─── component ───────────────────────────────────────────────────────────────
 
 export default function LocationAutocomplete({ placeholder, value, onChange, showGPS }: Props) {
   const [query, setQuery] = useState(value || '');
@@ -161,8 +158,8 @@ export default function LocationAutocomplete({ placeholder, value, onChange, sho
       <div className="relative flex items-center">
         <input
           className={`w-full p-3 rounded-xl outline-none transition-all duration-300 text-xs shadow-inner backdrop-blur-sm
-            bg-parchment border border-canopy/30 text-deep-forest placeholder:text-deep-forest/50 
-            focus:border-canopy focus:ring-1 focus:ring-canopy focus:bg-parchment
+            bg-theme-bg border border-theme-secondary/30 text-theme-text placeholder:text-theme-text/50 
+            focus:border-theme-secondary focus:ring-1 focus:ring-theme-secondary focus:bg-theme-bg
             ${!isSearching && query.length === 0 && showGPS ? 'pr-[70px]' : 'pr-10'}`}
           placeholder={placeholder}
           value={query}
@@ -178,7 +175,7 @@ export default function LocationAutocomplete({ placeholder, value, onChange, sho
         />
 
         {isSearching ? (
-          <div className="absolute right-3 flex items-center justify-center text-canopy">
+          <div className="absolute right-3 flex items-center justify-center text-theme-secondary">
             <Loader2 size={16} className="animate-spin" />
           </div>
         ) : isOpen || query.length > 0 ? (
@@ -191,7 +188,7 @@ export default function LocationAutocomplete({ placeholder, value, onChange, sho
               setIsOpen(false);
               setResults([]);
             }}
-            className="absolute right-2 p-1.5 rounded-lg transition-colors text-deep-forest/50 hover:text-deep-forest hover:bg-canopy/20"
+            className="absolute right-2 p-1.5 rounded-lg transition-colors text-theme-text/50 hover:text-theme-text hover:bg-theme-secondary/20"
           >
             <X size={16} />
           </button>
@@ -203,7 +200,7 @@ export default function LocationAutocomplete({ placeholder, value, onChange, sho
             title="Use current location"
             className={`absolute right-2 px-2.5 py-1.5 rounded-lg transition-all duration-300 text-[10px] font-bold tracking-wider flex items-center gap-1
               ${gpsLoading ? 'opacity-60 cursor-not-allowed' : ''}
-              bg-canopy/10 hover:bg-canopy text-canopy hover:text-parchment border border-transparent hover:border-canopy`}
+              bg-theme-secondary/10 hover:bg-theme-secondary text-theme-secondary hover:text-theme-bg border border-transparent hover:border-theme-secondary`}
           >
             {gpsLoading
               ? <><Loader2 size={12} className="animate-spin" /></>
@@ -215,20 +212,20 @@ export default function LocationAutocomplete({ placeholder, value, onChange, sho
       {isOpen && results.length > 0 && (
         <ul 
           ref={listRef} 
-          className="absolute z-50 w-full mt-2 border rounded-xl shadow-2xl max-h-[185px] overflow-y-auto backdrop-blur-md bg-parchment border-canopy/20 custom-scrollbar"
+          className="absolute z-50 w-full mt-2 border rounded-xl shadow-2xl max-h-[185px] overflow-y-auto backdrop-blur-md bg-theme-bg border-theme-secondary/20 custom-scrollbar"
         >
           {results.map((loc, i) => (
             <li
               key={i}
               onMouseDown={e => { e.preventDefault(); handleSelect(loc); }}
-              className="p-3 flex items-center gap-3 cursor-pointer transition-colors duration-200 group hover:bg-sage/20 border-b border-canopy/10 last:border-0 text-deep-forest"
+              className="p-3 flex items-center gap-3 cursor-pointer transition-colors duration-200 group hover:bg-theme-muted/20 border-b border-theme-secondary/10 last:border-0 text-theme-text"
             >
-              <div className="p-1.5 rounded-lg transition-all duration-300 group-hover:scale-110 bg-canopy/10 text-canopy group-hover:bg-canopy group-hover:text-parchment">
+              <div className="p-1.5 rounded-lg transition-all duration-300 group-hover:scale-110 bg-theme-secondary/10 text-theme-secondary group-hover:bg-theme-secondary group-hover:text-theme-bg">
                 <MapPin className='size-6'/>
               </div>
               <div className="flex-1 text-sm overflow-hidden flex flex-col justify-center">
-                <div className="font-semibold truncate leading-tight group-hover:text-forest-green transition-colors">{cap(loc.city)}</div>
-                <div className="text-[10px] font-medium leading-tight mt-0.5 text-deep-forest/60 group-hover:text-canopy transition-colors">
+                <div className="font-semibold truncate leading-tight group-hover:text-theme-primary transition-colors">{cap(loc.city)}</div>
+                <div className="text-[10px] font-medium leading-tight mt-0.5 text-theme-text/60 group-hover:text-theme-secondary transition-colors">
                   {cap(loc.state)}
                 </div>
               </div>

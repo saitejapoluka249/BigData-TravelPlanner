@@ -1,5 +1,3 @@
-// frontend/components/results/FlightCard.tsx
-
 import React, { useState, useMemo, useEffect } from 'react';
 
 type SortOption = 'price_asc' | 'price_desc' | 'duration_asc' | 'duration_desc';
@@ -109,9 +107,9 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
 
   if (!flights || !Array.isArray(flights) || flights.length === 0) {
     return (
-      <div className="p-8 text-center bg-white border border-dashed border-gray-300 rounded-xl text-gray-500 shadow-sm">
+      <div className="p-8 text-center bg-theme-bg border border-dashed border-theme-muted rounded-xl text-theme-text/70 shadow-sm">
         <span className="text-3xl block mb-2">📭</span>
-        <h3 className="text-base font-bold text-gray-800">No flights found</h3>
+        <h3 className="text-base font-bold text-theme-text">No flights found</h3>
         <p className="text-sm">Try adjusting your search dates or locations.</p>
       </div>
     );
@@ -123,7 +121,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
       <button
         onClick={() => setSortBy(id)}
         className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all border ${
-          isActive ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+          isActive ? 'bg-theme-primary text-theme-bg border-theme-primary shadow-sm' : 'bg-theme-bg text-theme-text/80 border-theme-surface hover:bg-theme-surface'
         }`}
       >
         {label}
@@ -133,10 +131,10 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-col xl:flex-row justify-between xl:items-end border-b border-gray-200 pb-3 gap-2">
+      <div className="flex flex-col xl:flex-row justify-between xl:items-end border-b border-theme-surface pb-3 gap-2">
         <div>
-          <h3 className="text-xl font-black text-gray-900 tracking-tight">Results...</h3>
-          <p className="text-xs text-gray-500">
+          <h3 className="text-xl font-black text-theme-text tracking-tight">Results...</h3>
+          <p className="text-xs text-theme-text/70">
             Showing {Math.min(flights.length, 12)} of {flights.length} options
           </p>
         </div>
@@ -156,19 +154,19 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
           <div 
             key={uniqueKey} 
             className={`rounded-lg overflow-hidden transition-all duration-200 border ${
-              isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-100/10 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+              isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10 shadow-sm' : 'border-theme-surface bg-theme-bg hover:border-theme-muted hover:shadow-md'
             }`}
           >
-            {/* Header: Airline, Price, Select Checkbox */}
-            <div className={`px-3 py-1 border-b flex justify-between items-center ${isSelected ? 'bg-blue-50 border-blue-100' : 'bg-gray-100/40 border-gray-200'}`}>
+            {/* Header */}
+            <div className={`px-3 py-1 border-b flex justify-between items-center ${isSelected ? 'bg-theme-muted/20 border-theme-muted/30' : 'bg-theme-surface/40 border-theme-surface'}`}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 flex items-center justify-center overflow-hidden relative shrink-0">
                   <img src={`https://images.kiwi.com/airlines/64/${flight.airline_code}.png`} alt={flight.airline_code} className="max-w-[80%] max-h-[80%] object-contain" />
                 </div>
                 <div>
-                  <h4 className="font-extrabold text-gray-900 leading-none mb-0 flex items-center gap-2">
+                  <h4 className="font-extrabold text-theme-text leading-none mb-0 flex items-center gap-2">
                     {flight.airline_name || flight.airline_code} 
-                    <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] uppercase tracking-widest font-bold rounded">
+                    <span className="inline-block px-2 py-0.5 bg-theme-surface text-theme-text/80 text-[10px] uppercase tracking-widest font-bold rounded">
                       {flight.cabin_class}
                     </span>
                   </h4>
@@ -177,43 +175,39 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
 
               <div className="flex items-center gap-4">
                 <div className="text-right leading-none">
-                  <p className="text-2xl font-black text-blue-600 tracking-tight">
+                  <p className="text-2xl font-black text-theme-primary tracking-tight">
                     ${getPrice(flight).toFixed(2)} 
-                    <span className="text-[10px] text-gray-500 font-bold tracking-wider ml-1">{flight.currency}</span>
+                    <span className="text-[10px] text-theme-text/70 font-bold tracking-wider ml-1">{flight.currency}</span>
                   </p>
                 </div>
 
-                <label className="flex items-center gap-2 cursor-pointer bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors shadow-sm shrink-0">
+                <label className="flex items-center gap-2 cursor-pointer bg-theme-bg text-theme-text px-4 py-2 rounded-lg hover:bg-theme-surface border border-theme-surface transition-colors shadow-sm shrink-0">
                   <input 
                     type="checkbox" 
                     checked={isSelected} 
                     onChange={() => toggleFlightSelection(flight, uniqueKey)} 
-                    className="w-4 h-4 accent-blue-600 cursor-pointer" 
+                    className="w-4 h-4 accent-theme-primary cursor-pointer" 
                   />
-                  <span className="text-xs font-bold text-gray-700 select-none w-[56px] inline-block text-center">
+                  <span className="text-xs font-bold text-theme-text/80 select-none w-[56px] inline-block text-center">
                     {isSelected ? 'Selected' : 'Select'}
                   </span>
                 </label>
               </div>
             </div>
 
-            {/* FLUID WRAP CONTAINER: 
-                - `flex-wrap` and `basis-[340px]` make itineraries sit side-by-side by default.
-                - If the width drops below ~680px, it automatically wraps them vertically. 
-            */}
             <div className="flex flex-wrap w-full">
               {flight.itineraries?.map((itinerary: any, itinIndex: number) => {
                 const isOutbound = itinIndex === 0;
                 const theme = isOutbound 
-                  ? { bg: 'bg-transparent', text: 'text-blue-700', badgeBg: 'bg-blue-100', icon: '🛫', label: 'Outbound' }
-                  : { bg: 'bg-transparent', text: 'text-green-700', badgeBg: 'bg-green-100', icon: '🛬', label: 'Return' };
+                  ? { bg: 'bg-transparent', text: 'text-theme-primary', badgeBg: 'bg-theme-muted/30', icon: '🛫', label: 'Outbound' }
+                  : { bg: 'bg-transparent', text: 'text-theme-secondary', badgeBg: 'bg-theme-muted/40', icon: '🛬', label: 'Return' };
                 const departureDate = itinerary.segments?.[0]?.departure_time;
 
                 return (
                   <div 
                     key={itinIndex} 
                     className={`flex-1 basis-[340px] p-4 ${theme.bg} ${
-                      isOutbound ? 'border-b xl:border-b-0 xl:border-r border-gray-100' : ''
+                      isOutbound ? 'border-b xl:border-b-0 xl:border-r border-theme-surface/50' : ''
                     }`}
                   >
                     <div className="flex justify-between items-center mb-3">
@@ -221,11 +215,11 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                         <span className={`px-2 py-1 rounded text-xs font-black uppercase tracking-widest ${theme.badgeBg} ${theme.text}`}>
                           {theme.icon} {theme.label}
                         </span>
-                        <span className="text-xs font-bold text-gray-500">{formatDate(departureDate)}</span>
+                        <span className="text-xs font-bold text-theme-text/70">{formatDate(departureDate)}</span>
                       </div>
                       <div className="text-right leading-none">
-                        <p className="text-xs font-bold text-gray-800">{formatDuration(itinerary.duration)}</p>
-                        <p className={`text-xs font-bold mt-0.5 ${itinerary.stops === 0 ? 'text-green-500' : 'text-amber-500'}`}>
+                        <p className="text-xs font-bold text-theme-text">{formatDuration(itinerary.duration)}</p>
+                        <p className={`text-xs font-bold mt-0.5 ${itinerary.stops === 0 ? 'text-theme-secondary' : 'text-theme-accent'}`}>
                           {itinerary.stops === 0 ? 'Direct' : `${itinerary.stops} Stop(s)`}
                         </p>
                       </div>
@@ -233,7 +227,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
 
                     <div className="flex flex-col gap-0 relative">
                       {itinerary.segments.length > 1 && (
-                        <div className="absolute left-[5.5px] top-3 bottom-3 w-[2px] bg-gray-200 z-0"></div>
+                        <div className="absolute left-[5.5px] top-3 bottom-3 w-[2px] bg-theme-surface z-0"></div>
                       )}
 
                       {itinerary.segments?.map((seg: any, segIndex: number) => {
@@ -243,38 +237,38 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                         return (
                           <div key={segIndex} className={`relative z-10 flex gap-3 ${isLast ? '' : 'mb-3'}`}>
                             <div className="flex flex-col items-center mt-1">
-                              <div className={`w-3 h-3 rounded-full border-2 bg-white relative z-20 ${isOutbound ? 'border-blue-600' : 'border-emerald-500'}`}></div>
+                              <div className={`w-3 h-3 rounded-full border-2 bg-theme-bg relative z-20 ${isOutbound ? 'border-theme-primary' : 'border-theme-secondary'}`}></div>
                             </div>
 
-                            <div className="flex-1 bg-white p-3 rounded-lg border border-gray-200 shadow-sm relative">
+                            <div className="flex-1 bg-theme-bg p-3 rounded-lg border border-theme-surface shadow-sm relative">
                               <div className="flex justify-between items-center">
                                 <div>
-                                  <p className="text-lg font-black text-gray-800 leading-none">{formatTime(seg.departure_time)}</p>
-                                  <p className="text-xs font-bold text-gray-500 mt-0.5">
+                                  <p className="text-lg font-black text-theme-text leading-none">{formatTime(seg.departure_time)}</p>
+                                  <p className="text-xs font-bold text-theme-text/70 mt-0.5">
                                     {seg.departure_name || 'Airport'} ({seg.departure_airport})
                                   </p>
                                 </div>
                                 <div className="flex flex-col items-center px-1">
-                                  <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mb-0.5">
+                                  <span className="text-[10px] text-theme-muted font-bold tracking-widest uppercase mb-0.5">
                                     {seg.carrier_code} {seg.flight_number}
                                   </span>
-                                  <div className="w-16 sm:w-24 h-[2px] bg-gray-200 mb-1"></div>
-                                  <div className="flex items-center gap-1 text-xs font-bold text-gray-500">
-                                    <span className="flex items-center gap-0.5 bg-gray-50 px-1 py-0.5 rounded" title="Personal item">🎒 {seg.personal_item ?? 1}</span>
-                                    <span className="flex items-center gap-0.5 bg-gray-50 px-1 py-0.5 rounded" title="Cabin bag">💼 {seg.cabin_bags ?? 0}</span>
-                                    <span className="flex items-center gap-0.5 bg-gray-50 px-1 py-0.5 rounded" title="Checked bag">🧳 {seg.checked_bags ?? 0}</span>
+                                  <div className="w-16 sm:w-24 h-[2px] bg-theme-surface mb-1"></div>
+                                  <div className="flex items-center gap-1 text-xs font-bold text-theme-text/70">
+                                    <span className="flex items-center gap-0.5 bg-theme-surface px-1 py-0.5 rounded" title="Personal item">🎒 {seg.personal_item ?? 1}</span>
+                                    <span className="flex items-center gap-0.5 bg-theme-surface px-1 py-0.5 rounded" title="Cabin bag">💼 {seg.cabin_bags ?? 0}</span>
+                                    <span className="flex items-center gap-0.5 bg-theme-surface px-1 py-0.5 rounded" title="Checked bag">🧳 {seg.checked_bags ?? 0}</span>
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-lg font-black text-gray-800 leading-none">{formatTime(seg.arrival_time)}</p>
-                                  <p className="text-xs font-bold text-gray-500 mt-0.5">
+                                  <p className="text-lg font-black text-theme-text leading-none">{formatTime(seg.arrival_time)}</p>
+                                  <p className="text-xs font-bold text-theme-text/70 mt-0.5">
                                     {seg.arrival_name || 'Airport'} ({seg.arrival_airport})
                                   </p>
                                 </div>
                               </div>
                               {!isLast && nextSeg && (
                                 <div className="absolute left-1/2 -bottom-4 transform -translate-x-1/2 z-30">
-                                  <span className="bg-amber-100 text-amber-800 text-[10px] uppercase tracking-widest font-black px-2 py-0.5 rounded-full border border-amber-200 shadow-sm whitespace-nowrap">
+                                  <span className="bg-theme-accent/20 text-theme-accent text-[10px] uppercase tracking-widest font-black px-2 py-0.5 rounded-full border border-theme-accent/30 shadow-sm whitespace-nowrap">
                                      Layover: {getLayoverDuration(seg.arrival_time, nextSeg.departure_time)}
                                   </span>
                                 </div>

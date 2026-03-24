@@ -1,5 +1,3 @@
-// larry6683/big-data-project-travel-app/frontend/components/map/TripMap.tsx
-
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -147,8 +145,8 @@ export default function TripMap({ mapData }: TripMapProps) {
     <div className="relative w-full h-full rounded-none overflow-hidden">
       
       {/* Floating Radius Controller */}
-      <div className="absolute bottom-3 left-[100px] -translate-x-1/2 z-10 bg-white px-1 py-[3px] rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center gap-2.5 border border-slate-300">
-        <label className="text-[10px] font-semibold text-slate-300 pl-1.5">
+      <div className="absolute bottom-3 left-[100px] -translate-x-1/2 z-10 bg-theme-bg px-1 py-[3px] rounded-full shadow-md flex items-center gap-2.5 border border-theme-surface">
+        <label className="text-[10px] font-semibold text-theme-muted pl-1.5">
          Zoom: {radiusValue} mi
         </label>
         <input 
@@ -160,7 +158,7 @@ export default function TripMap({ mapData }: TripMapProps) {
           onChange={handleRadiusSlider}
           onMouseUp={handleRadiusDrop}
           onTouchEnd={handleRadiusDrop}
-          className="w-[100px] cursor-pointer accent-blue-600"
+          className="w-[100px] cursor-pointer accent-theme-primary"
         />
       </div>
 

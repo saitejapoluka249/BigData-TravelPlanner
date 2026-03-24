@@ -1,4 +1,3 @@
-// frontend/components/results/DrivingCard.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -67,83 +66,82 @@ export default function DrivingCard({ drivingData }: { drivingData?: any }) {
   return (
     <div className="flex flex-col gap-4">
       <div
-        className={`bg-white rounded-xl overflow-hidden border p-5 transition-all duration-200 ${
+        className={`bg-theme-bg rounded-xl overflow-hidden border p-5 transition-all duration-200 ${
           isSelected
-            ? "border-blue-600 ring-1 ring-blue-600 bg-blue-100/10"
-            : "border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-md"
+            ? "border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10"
+            : "border-theme-surface shadow-sm hover:border-theme-muted hover:shadow-md"
         }`}
       >
         <div className="mb-6">
           <div className="flex justify-between items-start mb-3">
-            <h3 className="text-2xl font-black text-gray-900 tracking-tight leading-none">
+            <h3 className="text-2xl font-black text-theme-text tracking-tight leading-none">
               Road Trip Journey
             </h3>
 
-            <label className="flex items-center gap-2 cursor-pointer bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors shadow-sm shrink-0">
+            <label className="flex items-center gap-2 cursor-pointer bg-theme-bg text-theme-text px-4 py-2 rounded-lg hover:bg-theme-surface border border-theme-surface transition-colors shadow-sm shrink-0">
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={toggleDriveSelection}
-                className="w-4 h-4 accent-blue-600 cursor-pointer"
+                className="w-4 h-4 accent-theme-primary cursor-pointer"
               />
-              <span className="text-xs font-bold text-gray-700 select-none w-[56px] inline-block text-center">
+              <span className="text-xs font-bold text-theme-text/80 select-none w-[56px] inline-block text-center">
                 {isSelected ? "Selected" : "Select"}
               </span>
             </label>
           </div>
 
           <div className="flex items-center gap-2 text-sm font-bold mt-1">
-            <span className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded-lg shadow-sm">
+            <span className="bg-theme-muted/20 text-theme-primary border border-theme-muted px-3 py-1 rounded-lg shadow-sm">
               {sName}
             </span>
-            <span className="text-gray-400 text-lg">➔</span>
-            <span className="bg-red-50 text-red-800 border border-red-200 px-3 py-1 rounded-lg shadow-sm">
+            <span className="text-theme-muted text-lg">➔</span>
+            <span className="bg-theme-accent/10 text-theme-accent border border-theme-accent/30 px-3 py-1 rounded-lg shadow-sm">
               {dName}
             </span>
           </div>
         </div>
 
-        {/* 🌟 Updated styles: border-gray-200 and shadow-sm added to stat boxes */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-black text-gray-400 block mb-1">
+          <div className="bg-theme-surface p-4 rounded-xl border border-theme-surface shadow-sm flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-black text-theme-muted block mb-1">
               Distance
             </span>
-            <span className="text-xl font-black text-gray-800">
+            <span className="text-xl font-black text-theme-text">
               {fuel.miles} Mi
             </span>
-            <span className="text-[11px] text-gray-400 font-medium leading-tight mt-0.5">
+            <span className="text-[11px] text-theme-muted font-medium leading-tight mt-0.5">
               {drivingData.distance_km} km
             </span>
           </div>
-          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-black text-gray-400 block mb-1">
+          <div className="bg-theme-surface p-4 rounded-xl border border-theme-surface shadow-sm flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-black text-theme-muted block mb-1">
               Drive Time
             </span>
-            <span className="text-xl font-black text-gray-800">
+            <span className="text-xl font-black text-theme-text">
               {Math.floor(drivingData.duration_mins / 60)}h{" "}
               {Math.round(drivingData.duration_mins % 60)}m
             </span>
           </div>
-          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-black text-emerald-600 block mb-1">
+          <div className="bg-theme-muted/20 p-4 rounded-xl border border-theme-muted shadow-sm flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-black text-theme-primary block mb-1">
               Fuel Estimate
             </span>
-            <span className="text-xl font-black text-emerald-700">
+            <span className="text-xl font-black text-theme-secondary">
               ${fuel.cost}
             </span>
-            <span className="text-[11px] text-emerald-500/70 font-medium leading-tight mt-0.5">
+            <span className="text-[11px] text-theme-secondary/70 font-medium leading-tight mt-0.5">
               {fuel.gallons} Gal
             </span>
           </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-theme-surface/50 pt-4">
           <button
             onClick={toggleIntermediates}
             className="w-full flex justify-between items-center group mb-2"
           >
-            <span className="text-xs font-black text-blue-600 uppercase tracking-widest group-hover:underline">
+            <span className="text-xs font-black text-theme-primary uppercase tracking-widest group-hover:underline">
               {showIntermediates
                 ? "▼ Hide Route List"
                 : "▶ View All Passing Cities"}
@@ -151,13 +149,13 @@ export default function DrivingCard({ drivingData }: { drivingData?: any }) {
           </button>
 
           {showIntermediates && (
-            <div className="mt-4 bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-inner">
+            <div className="mt-4 bg-theme-surface rounded-xl p-6 border border-theme-muted shadow-inner">
               <div className="relative flex flex-col gap-6 ml-2">
-                <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-blue-200"></div>
+                <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-theme-muted"></div>
 
                 <div className="relative z-10 flex items-center gap-4">
-                  <div className="w-4 h-4 rounded-full bg-blue-600 border-[3px] border-white shadow-sm ring-2 ring-blue-200 shrink-0"></div>
-                  <span className="text-base font-black text-gray-900">
+                  <div className="w-4 h-4 rounded-full bg-theme-primary border-[3px] border-theme-bg shadow-sm ring-2 ring-theme-muted shrink-0"></div>
+                  <span className="text-base font-black text-theme-text">
                     {sName}
                   </span>
                 </div>
@@ -167,16 +165,16 @@ export default function DrivingCard({ drivingData }: { drivingData?: any }) {
                     key={idx}
                     className="relative z-10 flex items-center gap-4"
                   >
-                    <div className="w-3 h-3 ml-[2px] rounded-full bg-white border-[3px] border-blue-300 shadow-sm shrink-0"></div>
-                    <span className="text-sm font-bold text-gray-600">
+                    <div className="w-3 h-3 ml-[2px] rounded-full bg-theme-bg border-[3px] border-theme-muted shadow-sm shrink-0"></div>
+                    <span className="text-sm font-bold text-theme-text/80">
                       {city}
                     </span>
                   </div>
                 ))}
 
                 <div className="relative z-10 flex items-center gap-4">
-                  <div className="w-4 h-4 rounded-full bg-red-500 border-[3px] border-white shadow-sm ring-2 ring-red-200 shrink-0"></div>
-                  <span className="text-base font-black text-gray-900">
+                  <div className="w-4 h-4 rounded-full bg-theme-accent border-[3px] border-theme-bg shadow-sm ring-2 ring-theme-accent/30 shrink-0"></div>
+                  <span className="text-base font-black text-theme-text">
                     {dName}
                   </span>
                 </div>

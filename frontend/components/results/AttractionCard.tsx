@@ -1,5 +1,3 @@
-// larry6683/big-data-project-travel-app/frontend/components/results/AttractionCard.tsx
-
 import React, { useState, useEffect } from 'react';
 
 export default function AttractionsCard({ attractions }: { attractions: any[] }) {
@@ -42,15 +40,15 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
 
   if (!attractions || attractions.length === 0) {
     return (
-      <div className="p-8 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl text-gray-500 font-bold italic">
+      <div className="p-8 text-center bg-theme-surface border border-dashed border-theme-muted rounded-2xl text-theme-text/70 font-bold italic">
         No attractions found within the requested radius.
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-4">📸 Nearby Attractions</h3>
+    <div className="bg-theme-bg rounded-xl border border-theme-surface shadow-sm p-5">
+      <h3 className="text-2xl font-black text-theme-text tracking-tight mb-4">📸 Nearby Attractions</h3>
       
       <div className="flex flex-col gap-3">
         {attractions.slice(0, 12).map((poi, idx) => {
@@ -63,32 +61,32 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
             <div 
               key={uniqueKey} 
               className={`border rounded-xl p-4 transition-all duration-300 ease-in-out origin-center flex flex-row items-center justify-between gap-4 ${
-                isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-100/10 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+                isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10 shadow-sm' : 'border-theme-surface bg-theme-bg hover:border-theme-muted hover:shadow-md'
               }`}
             >
               <div className="flex flex-col gap-1.5">
-                <h4 className="font-bold text-gray-800 leading-tight" title={name}>{name}</h4>
+                <h4 className="font-bold text-theme-text leading-tight" title={name}>{name}</h4>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-block bg-gray-200/60 text-blue-700 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider">
+                  <span className="inline-block bg-theme-surface text-theme-primary text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider">
                     {category.replace(/_/g, ' ')}
                   </span>
                   
                   {poi.distance && (
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                      <span className="text-gray-300">•</span> 📍 {(poi.distance / 1609.34).toFixed(1)} miles away
+                    <span className="text-[11px] font-bold text-theme-muted uppercase tracking-wider flex items-center gap-1">
+                      <span className="text-theme-muted/60">•</span> 📍 {(poi.distance / 1609.34).toFixed(1)} miles away
                     </span>
                   )}
                 </div>
               </div>
         
-              <label className="flex items-center gap-2 cursor-pointer bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors shadow-sm shrink-0">
+              <label className="flex items-center gap-2 cursor-pointer bg-theme-bg text-theme-text px-4 py-2 rounded-lg hover:bg-theme-surface border border-theme-surface transition-colors shadow-sm shrink-0">
                 <input 
                   type="checkbox" 
                   checked={isSelected} 
                   onChange={() => toggleAttractionSelection(poi, uniqueKey)} 
-                  className="w-4 h-4 accent-blue-600 cursor-pointer transition-transform duration-300 hover:scale-110" 
+                  className="w-4 h-4 accent-theme-primary cursor-pointer transition-transform duration-300 hover:scale-110" 
                 />
-          <span className="text-xs font-bold text-gray-700 select-none w-[56px] inline-block text-center">
+          <span className="text-xs font-bold text-theme-text/80 select-none w-[56px] inline-block text-center">
                   {isSelected ? 'Selected' : 'Select'}
                 </span>
               </label>

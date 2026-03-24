@@ -1,4 +1,3 @@
-// frontend/components/results/StayCard.tsx
 import React, { useState, useEffect } from "react";
 
 const getNumNights = (start?: string, end?: string) => {
@@ -48,18 +47,18 @@ const StayRow = ({
 
   return (
     <div
-      className={`border rounded-xl p-4 transition-all duration-200 bg-white ${
+      className={`border rounded-xl p-4 transition-all duration-200 bg-theme-bg ${
         isSelected
-          ? "border-blue-600 ring-1 ring-blue-600 bg-blue-100/10 shadow-sm"
-          : "border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-md"
+          ? "border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10 shadow-sm"
+          : "border-theme-surface shadow-sm hover:border-theme-muted hover:shadow-md"
       }`}
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col flex-1 w-full text-left">
-          <h4 className="font-extrabold text-lg text-gray-900 leading-tight mb-1">
+          <h4 className="font-extrabold text-lg text-theme-text leading-tight mb-1">
             {stay.name || stay.hotel?.name || "Hotel"}
           </h4>
-          <p className="text-sm text-gray-500 font-medium">
+          <p className="text-sm text-theme-text/70 font-medium">
             📍 {formatAddress(stay.address)}
           </p>
         </div>
@@ -69,8 +68,8 @@ const StayRow = ({
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all shadow-sm shrink-0 
             ${
               isUnavailable
-                ? "opacity-40 cursor-not-allowed bg-gray-50 border-gray-100"
-                : "cursor-pointer hover:bg-gray-50 border-gray-200"
+                ? "opacity-40 cursor-not-allowed bg-theme-surface border-theme-surface/50"
+                : "cursor-pointer hover:bg-theme-surface border-theme-surface"
             }`}
           >
             <input
@@ -80,9 +79,9 @@ const StayRow = ({
               onChange={() => {
                 if (!isUnavailable) toggleStaySelection(stay, uniqueKey);
               }}
-              className="w-4 h-4 accent-blue-600 cursor-pointer disabled:cursor-not-allowed"
+              className="w-4 h-4 accent-theme-primary cursor-pointer disabled:cursor-not-allowed"
             />
-            <span className="text-xs font-bold text-gray-700 select-none w-[60px] inline-block text-center">
+            <span className="text-xs font-bold text-theme-text/80 select-none w-[60px] inline-block text-center">
               {isSelected ? "Selected" : "Select"}
             </span>
           </label>
@@ -90,18 +89,18 @@ const StayRow = ({
           <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
             {!isUnavailable && offer ? (
               <div className="text-right leading-none">
-                <p className="text-xl font-black text-blue-600 tracking-tight">
+                <p className="text-xl font-black text-theme-primary tracking-tight">
                   ${offer.price?.toFixed(2)}
-                  <span className="text-[10px] text-gray-500 font-bold tracking-wider ml-1">
+                  <span className="text-[10px] text-theme-text/70 font-bold tracking-wider ml-1">
                     {offer.currency || "USD"}
                   </span>
                 </p>
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                <p className="text-[9px] text-theme-muted font-bold uppercase tracking-widest mt-1">
                   Total Stay
                 </p>
               </div>
             ) : (
-              <span className="text-amber-500 text-[10px] font-bold uppercase tracking-widest">
+              <span className="text-theme-accent text-[10px] font-bold uppercase tracking-widest">
                 Sold Out
               </span>
             )}
@@ -109,33 +108,32 @@ const StayRow = ({
         </div>
       </div>
 
-      {/* Renders the rooms immediately without requiring a dropdown */}
       {hasRooms && !isUnavailable && (
-        <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-3">
+        <div className="mt-4 pt-4 border-t border-theme-surface/50 flex flex-col gap-3">
           {offer.rooms.map((room: any, i: number) => (
             <div
               key={i}
-              className="flex flex-col bg-gray-50/50 p-3 rounded-xl border border-gray-200 gap-1.5 shadow-sm"
+              className="flex flex-col bg-theme-surface/50 p-3 rounded-xl border border-theme-surface gap-1.5 shadow-sm"
             >
               <div className="flex justify-between items-center w-full">
                 <div className="flex justify-between items-center">
-                  <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+                  <p className="text-[11px] text-theme-muted font-bold uppercase tracking-widest">
                     {totalGuests} Guests • {numNights} Night
                     {numNights > 1 ? "s" : ""}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+                  <p className="text-[11px] text-theme-muted font-bold uppercase tracking-widest">
                     ${(room.price / numNights).toFixed(2)} / night
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-1">
-                <p className="text-[11px] text-gray-500 font-medium leading-relaxed italic">
+                <p className="text-[11px] text-theme-text/70 font-medium leading-relaxed italic">
                   {room.description || "Standard room amenities included."}
                 </p>
-                <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
+                <p className="text-[11px] text-theme-muted font-bold uppercase tracking-wider">
                   {room.category || "Room"} • {room.bed_type || "Standard"} •{" "}
                   {room.beds_count || 1}{" "}
                   {room.beds_count === 1 ? "Bed" : "Beds"}
@@ -189,9 +187,9 @@ export default function StaysCard({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <div className="flex justify-between items-end border-b border-gray-200 pb-3 mb-4">
-        <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+    <div className="bg-theme-bg rounded-xl border border-theme-surface shadow-sm p-5">
+      <div className="flex justify-between items-end border-b border-theme-surface pb-3 mb-4">
+        <h3 className="text-2xl font-black text-theme-text tracking-tight">
           🏨 Stays
         </h3>
       </div>

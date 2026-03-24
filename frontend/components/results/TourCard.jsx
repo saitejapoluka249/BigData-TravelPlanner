@@ -1,5 +1,3 @@
-// frontend/components/results/TourCard.jsx
-
 import React, { useState, useEffect } from 'react';
 
 export default function ToursCard({ tours }) {
@@ -42,15 +40,15 @@ export default function ToursCard({ tours }) {
 
   if (!tours || tours.length === 0) {
     return (
-      <div className="p-8 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl text-gray-500 font-bold italic">
+      <div className="p-8 text-center bg-theme-surface border border-dashed border-theme-surface rounded-2xl text-theme-text/70 font-bold italic">
         No specific tours or guided experiences found for this destination.
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-4">🗺️ Local Tours & Experiences</h3>
+    <div className="bg-theme-bg rounded-xl border border-theme-surface shadow-sm p-5">
+      <h3 className="text-2xl font-black text-theme-text tracking-tight mb-4">🗺️ Local Tours & Experiences</h3>
       
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         {tours.map((tour, idx) => {
@@ -60,11 +58,11 @@ export default function ToursCard({ tours }) {
           return (
             <div 
               key={uniqueKey} 
-              className={`group border rounded-xl p-4 transition-all duration-200 flex flex-col gap-4 ${isSelected ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-100/10 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md shadow-sm'}`}
+              className={`group border rounded-xl p-4 transition-all duration-200 flex flex-col gap-4 ${isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10 shadow-sm' : 'border-theme-surface bg-theme-bg hover:border-theme-muted hover:shadow-md shadow-sm'}`}
             >
               
               {tour.picture_url ? (
-                <div className="w-full h-40 md:h-48 rounded-lg shrink-0 shadow-sm border border-gray-200 overflow-hidden">
+                <div className="w-full h-40 md:h-48 rounded-lg shrink-0 shadow-sm border border-theme-surface overflow-hidden">
                   <img 
                     src={tour.picture_url} 
                     alt={tour.name} 
@@ -72,7 +70,7 @@ export default function ToursCard({ tours }) {
                   />
                 </div>
               ) : (
-                <div className="w-full h-40 md:h-48 bg-blue-100 text-blue-400 flex items-center justify-center rounded-lg shrink-0 shadow-sm text-4xl border border-blue-200 overflow-hidden">
+                <div className="w-full h-40 md:h-48 bg-theme-muted/20 text-theme-secondary flex items-center justify-center rounded-lg shrink-0 shadow-sm text-4xl border border-theme-muted overflow-hidden">
                   <div className="scale-110 group-hover:scale-100 transition-transform duration-500 ease-out">
                     🎟️
                   </div>
@@ -83,47 +81,44 @@ export default function ToursCard({ tours }) {
                 <div>
                   
                   <div className="flex flex-wrap justify-between items-start gap-3">
-                    <h4 className="font-bold text-gray-800 text-base leading-tight mb-1 flex-1 min-w-[150px]" title={tour.name}>
+                    <h4 className="font-bold text-theme-text text-base leading-tight mb-1 flex-1 min-w-[150px]" title={tour.name}>
                       {tour.name}
                     </h4>
 
-                    <label className="flex items-center gap-2 cursor-pointer bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors shadow-sm shrink-0">
+                    <label className="flex items-center gap-2 cursor-pointer bg-theme-bg text-theme-text px-4 py-2 rounded-lg hover:bg-theme-surface border border-theme-surface transition-colors shadow-sm shrink-0">
                       <input 
                         type="checkbox" 
                         checked={isSelected} 
                         onChange={() => toggleTourSelection(tour, uniqueKey)} 
-                        className="w-4 h-4 accent-blue-600 cursor-pointer" 
+                        className="w-4 h-4 accent-theme-primary cursor-pointer" 
                       />
-                      <span className="text-xs font-bold text-gray-700 select-none w-[56px] inline-block text-center">
+                      <span className="text-xs font-bold text-theme-text/80 select-none w-[56px] inline-block text-center">
                         {isSelected ? 'Selected' : 'Select'}
                       </span>
                     </label>
                   </div>
                   
-                  <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed mt-2" title={tour.short_description}>
+                  <p className="text-sm text-theme-text/70 line-clamp-3 leading-relaxed mt-2" title={tour.short_description}>
                     {tour.short_description || "Experience the best of the local culture and sights with this guided activity."}
                   </p>
                 </div>
                 
-                {/* Centered Duration and Price Layout */}
-                <div className="flex w-full items-center justify-center pt-3 mt-4 border-t border-gray-200">
+                <div className="flex w-full items-center justify-center pt-3 mt-4 border-t border-theme-surface">
                   
-                  {/* Duration Half */}
-                  <div className="flex-1 text-center border-r border-gray-200">
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                  <div className="flex-1 text-center border-r border-theme-surface">
+                    <span className="block text-[10px] font-bold text-theme-muted uppercase tracking-wider mb-0.5">
                       Duration
                     </span>
-                    <span className="text-sm font-semibold text-gray-700">
+                    <span className="text-sm font-semibold text-theme-text/80">
                       {tour.minimum_duration ? `⏱️ ${tour.minimum_duration}` : 'Flexible'}
                     </span>
                   </div>
 
-                  {/* Price Half */}
                   <div className="flex-1 text-center">
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                    <span className="block text-[10px] font-bold text-theme-muted uppercase tracking-wider mb-0.5">
                       Price
                     </span>
-                    <span className="text-sm font-black text-emerald-600">
+                    <span className="text-sm font-black text-theme-secondary">
                       {tour.price ? `${tour.currency === 'USD' ? '$' : tour.currency === 'EUR' ? '€' : tour.currency}${tour.price}` : 'Free'}
                     </span>
                   </div>

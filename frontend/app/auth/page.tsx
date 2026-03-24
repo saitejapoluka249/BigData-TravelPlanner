@@ -19,7 +19,7 @@ import Link from "next/link";
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
 
-  // --- NEW: Password Reset States ---
+  // --- Password Reset States ---
   const [isForgotMode, setIsForgotMode] = useState(false);
   const [resetStep, setResetStep] = useState<"email" | "verify">("email");
   const [resetCode, setResetCode] = useState("");
@@ -76,24 +76,44 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      let token = "";
+      let displayUsername = email; // Fallback
+
       if (isLogin) {
         const res = await travelApi.login(email, password);
-        auth.login(res.access_token, res.email);
+        token = res.access_token;
       } else {
         const res = await travelApi.signup(name, email, password);
-        auth.login(res.access_token, res.email);
+        token = res.access_token;
       }
+
+      if (!token) throw new Error("No access token received from server.");
+
+      // Temporarily store token so getProfile can use it in its headers
+      localStorage.setItem("token", token);
+
+      try {
+        // Fetch the full profile so the Navbar displays the user's real name instead of 'undefined'
+        const profile = await travelApi.getProfile();
+        displayUsername = profile.full_name || profile.name || profile.email || email;
+      } catch (profileErr) {
+        console.warn("Could not fetch profile, falling back to email");
+      }
+
+      // Complete the login sequence
+      auth.login(token, displayUsername);
       router.push("/");
     } catch (err: any) {
+      localStorage.removeItem("token"); // Clean up if failed
       setGlobalError(
-        err.response?.data?.detail || err.message || "Authentication failed."
+        err.response?.data?.detail || err.message || "Authentication failed. Please check your credentials."
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- NEW: Password Reset Handler ---
+  // --- Password Reset Handler ---
   const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGlobalError("");
@@ -147,24 +167,24 @@ export default function LoginPage() {
     };
 
   return (
-    <div className="min-h-screen flex w-full font-sans bg-[#fafcff]">
-      {/* ... [KEEP LEFT HALF UI EXACTLY THE SAME] ... */}
-      <div className="hidden lg:flex w-1/2 relative bg-slate-900 overflow-hidden items-end justify-start pb-20 pl-16">
+    <div className="min-h-screen flex w-full font-sans bg-theme-bg">
+      {/* LEFT HALF */}
+      <div className="hidden lg:flex w-1/2 relative bg-theme-text overflow-hidden items-end justify-start pb-20 pl-16">
         <img
           src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
           alt="Beautiful travel destination"
           className="absolute inset-0 w-full h-full object-cover opacity-50 transition-transform duration-[20s] hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent"></div>
-        <div className="relative z-10 max-w-lg text-white animate-in fade-in slide-in-from-left-8 duration-1000 delay-300 fill-mode-both">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-xs font-bold uppercase tracking-widest mb-6">
+        <div className="absolute inset-0 bg-gradient-to-t from-theme-text/95 via-theme-text/40 to-transparent"></div>
+        <div className="relative z-10 max-w-lg text-theme-bg animate-in fade-in slide-in-from-left-8 duration-1000 delay-300 fill-mode-both">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-theme-bg/10 backdrop-blur-md border border-theme-bg/20 text-xs font-bold uppercase tracking-widest mb-6">
             <SparkleIcon /> Smart Planning
           </div>
           <h1 className="text-5xl font-black tracking-tight mb-4 leading-[1.1]">
             Your next great adventure,{" "}
-            <span className="text-blue-400">planned in seconds.</span>
+            <span className="text-theme-accent">planned in seconds.</span>
           </h1>
-          <p className="text-lg text-slate-300 font-medium">
+          <p className="text-lg text-theme-bg/80 font-medium">
             Let our AI craft the perfect itinerary tailored to your unique
             travel style.
           </p>
@@ -173,33 +193,33 @@ export default function LoginPage() {
 
       {/* RIGHT HALF */}
       <div className="w-full lg:w-1/2 flex items-center justify-center relative p-6 sm:p-12 overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-400/15 blur-[120px] pointer-events-none"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-400/15 blur-[120px] pointer-events-none"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-theme-primary/10 blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-theme-secondary/10 blur-[120px] pointer-events-none"></div>
 
         <div className="w-full max-w-[420px] relative z-10">
           <div className="lg:hidden text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-3xl font-extrabold text-slate-900 tracking-tight"
+              className="inline-flex items-center gap-2 text-3xl font-extrabold text-theme-text tracking-tight"
             >
               <PlaneTakeoff
-                className="text-blue-600"
+                className="text-theme-primary"
                 size={32}
                 strokeWidth={2.5}
               />
-              WanderPlan <span className="text-blue-600">US</span>
+              WanderPlan <span className="text-theme-primary">US</span>
             </Link>
           </div>
 
           <div className="hidden lg:block mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-3xl font-extrabold text-theme-text tracking-tight">
               {!isForgotMode
                 ? isLogin
                   ? "Welcome back"
                   : "Create an account"
                 : "Reset Password"}
             </h2>
-            <p className="text-slate-500 mt-2 text-sm font-medium">
+            <p className="text-theme-muted mt-2 text-sm font-medium">
               {!isForgotMode
                 ? isLogin
                   ? "Enter your details to access your trips."
@@ -208,12 +228,12 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-white p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="bg-theme-surface/60 backdrop-blur-xl rounded-[2rem] shadow-sm border border-theme-surface p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
             {/* Show Toggle ONLY if not in forgot password mode */}
             {!isForgotMode && (
-              <div className="flex bg-slate-100 p-1 rounded-2xl mb-8 relative">
+              <div className="flex bg-theme-bg p-1 rounded-2xl mb-8 relative border border-theme-surface">
                 <div
-                  className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-sm transition-all duration-300 ease-out ${
+                  className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-theme-surface rounded-xl shadow-sm transition-all duration-300 ease-out ${
                     isLogin ? "left-1" : "left-[calc(50%+2px)]"
                   }`}
                 ></div>
@@ -226,8 +246,8 @@ export default function LoginPage() {
                   }}
                   className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 z-10 ${
                     isLogin
-                      ? "text-slate-900"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "text-theme-text"
+                      : "text-theme-muted hover:text-theme-text"
                   }`}
                 >
                   Sign In
@@ -241,8 +261,8 @@ export default function LoginPage() {
                   }}
                   className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 z-10 ${
                     !isLogin
-                      ? "text-slate-900"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "text-theme-text"
+                      : "text-theme-muted hover:text-theme-text"
                   }`}
                 >
                   Sign Up
@@ -274,7 +294,7 @@ export default function LoginPage() {
                       className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors ${
                         fieldErrors.name
                           ? "text-red-400"
-                          : "text-slate-400 group-focus-within:text-blue-500"
+                          : "text-theme-muted group-focus-within:text-theme-primary"
                       }`}
                     >
                       <UserIcon size={18} />
@@ -284,10 +304,10 @@ export default function LoginPage() {
                       placeholder="Full Name"
                       value={name}
                       onChange={handleInputChange(setName, "name")}
-                      className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:bg-white transition-all ${
+                      className={`w-full pl-11 pr-4 py-3.5 bg-theme-bg border rounded-xl text-sm font-medium text-theme-text placeholder:text-theme-muted focus:outline-none focus:ring-2 focus:bg-theme-bg transition-all ${
                         fieldErrors.name
                           ? "border-red-300 focus:ring-red-500/20 focus:border-red-500"
-                          : "border-slate-200 focus:ring-blue-500/20 focus:border-blue-500"
+                          : "border-theme-secondary/30 focus:ring-theme-primary/20 focus:border-theme-primary"
                       }`}
                     />
                   </div>
@@ -306,7 +326,7 @@ export default function LoginPage() {
                     className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors ${
                       fieldErrors.email
                         ? "text-red-400"
-                        : "text-slate-400 group-focus-within:text-blue-500"
+                        : "text-theme-muted group-focus-within:text-theme-primary"
                     }`}
                   >
                     <Mail size={18} />
@@ -317,13 +337,13 @@ export default function LoginPage() {
                     value={email}
                     disabled={isForgotMode && resetStep === "verify"}
                     onChange={handleInputChange(setEmail, "email")}
-                    className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:bg-white transition-all ${
+                    className={`w-full pl-11 pr-4 py-3.5 bg-theme-bg border rounded-xl text-sm font-medium text-theme-text placeholder:text-theme-muted focus:outline-none focus:ring-2 focus:bg-theme-bg transition-all ${
                       fieldErrors.email
                         ? "border-red-300 focus:ring-red-500/20 focus:border-red-500"
-                        : "border-slate-200 focus:ring-blue-500/20 focus:border-blue-500"
+                        : "border-theme-secondary/30 focus:ring-theme-primary/20 focus:border-theme-primary"
                     } ${
                       isForgotMode && resetStep === "verify"
-                        ? "opacity-60 cursor-not-allowed bg-slate-100"
+                        ? "opacity-60 cursor-not-allowed bg-theme-surface"
                         : ""
                     }`}
                   />
@@ -343,7 +363,7 @@ export default function LoginPage() {
                       className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors ${
                         fieldErrors.password
                           ? "text-red-400"
-                          : "text-slate-400 group-focus-within:text-blue-500"
+                          : "text-theme-muted group-focus-within:text-theme-primary"
                       }`}
                     >
                       <Lock size={18} />
@@ -355,10 +375,10 @@ export default function LoginPage() {
                       }
                       value={password}
                       onChange={handleInputChange(setPassword, "password")}
-                      className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:bg-white transition-all ${
+                      className={`w-full pl-11 pr-4 py-3.5 bg-theme-bg border rounded-xl text-sm font-medium text-theme-text placeholder:text-theme-muted focus:outline-none focus:ring-2 focus:bg-theme-bg transition-all ${
                         fieldErrors.password
                           ? "border-red-300 focus:ring-red-500/20 focus:border-red-500"
-                          : "border-slate-200 focus:ring-blue-500/20 focus:border-blue-500"
+                          : "border-theme-secondary/30 focus:ring-theme-primary/20 focus:border-theme-primary"
                       }`}
                     />
                   </div>
@@ -374,7 +394,7 @@ export default function LoginPage() {
               {isForgotMode && resetStep === "verify" && (
                 <div className="animate-in slide-in-from-top-2 fade-in duration-300">
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors text-slate-400 group-focus-within:text-blue-500">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors text-theme-muted group-focus-within:text-theme-primary">
                       <Key size={18} />
                     </div>
                     <input
@@ -382,7 +402,7 @@ export default function LoginPage() {
                       placeholder="6-Digit Code from Email"
                       value={resetCode}
                       onChange={(e) => setResetCode(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all tracking-widest"
+                      className="w-full pl-11 pr-4 py-3.5 bg-theme-bg border border-theme-secondary/30 rounded-xl text-sm font-medium text-theme-text placeholder:text-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-primary/20 focus:border-theme-primary transition-all tracking-widest"
                       maxLength={6}
                     />
                   </div>
@@ -397,7 +417,7 @@ export default function LoginPage() {
                       setIsForgotMode(true);
                       setGlobalError("");
                     }}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                    className="text-xs font-bold text-theme-primary hover:text-theme-secondary transition-colors"
                   >
                     Forgot password?
                   </button>
@@ -407,7 +427,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-[0_8px_20px_-6px_rgba(37,99,235,0.4)] transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group"
+                className="w-full mt-2 py-3.5 px-4 bg-theme-primary hover:bg-theme-secondary text-theme-bg rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-theme-primary/30 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group"
               >
                 {isLoading ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -437,7 +457,7 @@ export default function LoginPage() {
                       setResetStep("email");
                       setSuccessMessage("");
                     }}
-                    className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                    className="text-xs font-bold text-theme-muted hover:text-theme-text transition-colors"
                   >
                     Back to login
                   </button>
@@ -448,16 +468,16 @@ export default function LoginPage() {
             {!isForgotMode && (
               <>
                 <div className="mt-8 flex items-center gap-4">
-                  <div className="flex-1 h-px bg-slate-100"></div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  <div className="flex-1 h-px bg-theme-surface"></div>
+                  <span className="text-[10px] font-bold text-theme-muted uppercase tracking-widest">
                     Or continue with
                   </span>
-                  <div className="flex-1 h-px bg-slate-100"></div>
+                  <div className="flex-1 h-px bg-theme-surface"></div>
                 </div>
                 <div className="mt-6">
                   <button
                     type="button"
-                    className="w-full flex items-center justify-center gap-3 py-3 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-xl text-sm font-bold text-slate-700 transition-all shadow-sm active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-3 py-3 bg-theme-bg border border-theme-secondary/30 hover:bg-theme-surface hover:border-theme-secondary/50 rounded-xl text-sm font-bold text-theme-text transition-all shadow-sm active:scale-[0.98]"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24">
                       <path
@@ -489,7 +509,7 @@ function SparkleIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-blue-300"
+      className="text-theme-accent"
     >
       <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
     </svg>

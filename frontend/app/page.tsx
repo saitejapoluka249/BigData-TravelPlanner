@@ -67,7 +67,6 @@ const STATE_ABBR: Record<string, string> = {
 };
 
 export default function Dashboard() {
-  // 1. Initialize loading to true so it shows loader while checking cached data
   const [loading, setLoading] = useState(true);
   const [tripData, setTripData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +87,6 @@ export default function Dashboard() {
       }
     }
     
-    // 2. Set loading to false once initial check is done
     setLoading(false);
   }, []);
 
@@ -266,7 +264,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-white overflow-hidden">
+    <div className="flex h-screen w-screen bg-theme-bg overflow-hidden">
       <ItineraryModal
         isOpen={isItineraryOpen}
         onClose={() => setIsItineraryOpen(false)}
@@ -276,7 +274,7 @@ export default function Dashboard() {
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-theme-text/50 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -308,20 +306,20 @@ export default function Dashboard() {
         <div className="flex flex-1 overflow-hidden">
           {/* Main Trip Results Section */}
           <div
-            className={`flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50/30 ${
-              mapOpen && !loading ? "hidden md:block" : "" // Added !loading so it doesn't hide on mobile while fetching
+            className={`flex-1 h-full overflow-y-auto custom-scrollbar bg-theme-bg/50 ${
+              mapOpen && !loading ? "hidden md:block" : ""
             }`}
           >
             <div className="p-4 md:p-6 w-full relative">
               <div className="flex justify-between items-center mb-4 md:mb-6">
-                <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">
+                <h1 className="text-xl md:text-2xl font-black text-theme-text tracking-tight">
                   Trip Planner
                 </h1>
 
                 {tripData && !loading && (
                   <button
                     onClick={() => setIsItineraryOpen(true)}
-                    className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold rounded-xl transition-all shadow-md active:scale-95"
+                    className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-theme-primary hover:bg-theme-secondary text-theme-bg text-xs md:text-sm font-bold rounded-xl transition-all shadow-md active:scale-95"
                   >
                     Generate Itinerary
                   </button>
@@ -329,7 +327,7 @@ export default function Dashboard() {
               </div>
 
               {error && (
-                <div className="bg-red-50 text-red-700 p-4 border border-red-100 rounded-xl mb-6 text-sm font-bold">
+                <div className="bg-red-50 text-red-700 p-4 border border-red-100 rounded-xl mb-6 text-sm font-bold shadow-sm">
                   {error}
                 </div>
               )}
@@ -337,8 +335,8 @@ export default function Dashboard() {
               {tripData || loading ? (
                 <TripResults data={tripData} loading={loading} />
               ) : (
-                <div className="flex flex-col items-center justify-center py-24 md:py-32 border-2 border-dashed border-gray-200 bg-white w-full rounded-2xl">
-                  <p className="text-gray-400 font-bold uppercase tracking-widest text-xs text-center px-4">
+                <div className="flex flex-col items-center justify-center py-24 md:py-32 border-2 border-dashed border-theme-surface bg-theme-bg w-full rounded-2xl shadow-sm">
+                  <p className="text-theme-muted font-bold uppercase tracking-widest text-xs text-center px-4">
                     <span className="lg:hidden">
                       Tap the menu icon to start planning
                     </span>
@@ -351,10 +349,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* 3. Conditionally remove Map when loading, allowing results pane to expand to 100% width */}
           {!loading && (
             <div
-              className={`h-full border-l border-gray-100 bg-white ${
+              className={`h-full border-l border-theme-surface bg-theme-bg ${
                 mapOpen ? "flex-1 w-full" : "hidden"
               } md:flex md:flex-none md:w-[40vw] lg:w-[30vw]`}
             >
