@@ -47,9 +47,7 @@ export default function ToursCard({ tours }) {
   }
 
   return (
-    <div className="bg-theme-bg rounded-xl border border-theme-surface shadow-sm p-5">
-      <h3 className="text-2xl font-black text-theme-text tracking-tight mb-4">🗺️ Local Tours & Experiences</h3>
-      
+    <div className="bg-theme-bg rounded-xl p-2">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         {tours.map((tour, idx) => {
           const uniqueKey = tour.id || `tour-${idx}`;
@@ -58,7 +56,7 @@ export default function ToursCard({ tours }) {
           return (
             <div 
               key={uniqueKey} 
-              className={`group border rounded-xl p-4 transition-all duration-200 flex flex-col gap-4 ${isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10 shadow-sm' : 'border-theme-surface bg-theme-bg hover:border-theme-muted hover:shadow-md shadow-sm'}`}
+              className={`group border rounded-xl p-4 transition-all duration-200 flex flex-col gap-4 ${isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-bg/20 shadow-sm' : 'border-theme-surface bg-theme-bg/10 hover:border-theme-muted hover:shadow-md shadow-sm'}`}
             >
               
               {tour.picture_url ? (

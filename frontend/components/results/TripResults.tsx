@@ -96,7 +96,7 @@ export default function TripResults({
 
   return (
     <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="sticky top-0 z-20 bg-theme-bg/95 backdrop-blur-sm pt-1 mb-4 border-b border-theme-surface">
+      <div className="sticky top-0 z-20 bg-theme-bg backdrop-blur-sm pt-1 mb-4 border-b border-theme-surface">
         <div className="flex w-full">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -121,7 +121,7 @@ export default function TripResults({
                   {tab.label}
                 </span>
                 {isActive && (
-                  <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-theme-primary rounded-t-full shadow-[0_-4px_10px_var(--color-theme-primary)]" />
+                  <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-theme-primary rounded-t-full" />
                 )}
               </button>
             );

@@ -71,38 +71,28 @@ export default function Chatbot({
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {/* Toggle Button */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-transform transform hover:scale-105"
-        >
-          <MessageCircle size={28} />
-        </button>
-      )}
-
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="bg-white rounded-2xl shadow-2xl w-80 sm:w-96 flex flex-col overflow-hidden border border-gray-200"
+          className="bg-theme-bg rounded-2xl shadow-2xl w-80 sm:w-96 flex flex-col overflow-hidden border border-theme-surface"
           style={{ height: "500px" }}
         >
           {/* Header */}
-          <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
+          <div className="bg-theme-primary p-4 text-theme-bg flex justify-between items-center">
             <h3 className="font-semibold flex items-center gap-2">
               <MessageCircle size={20} /> Travel Assistant
             </h3>
             <button
               onClick={() => setIsOpen(false)}
-              className="hover:text-gray-200"
+              className="text-theme-bg/80 hover:text-theme-bg transition-colors"
             >
               <X size={20} />
             </button>
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-theme-bg/50">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
@@ -111,10 +101,10 @@ export default function Chatbot({
                 }`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
                     msg.role === "user"
-                      ? "bg-blue-600 text-white rounded-tr-none"
-                      : "bg-gray-200 text-gray-800 rounded-tl-none"
+                      ? "bg-theme-primary text-theme-bg rounded-tr-none"
+                      : "bg-theme-surface text-theme-text border border-theme-surface rounded-tl-none"
                   }`}
                 >
                   {msg.content}
@@ -123,7 +113,7 @@ export default function Chatbot({
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-200 text-gray-500 rounded-2xl rounded-tl-none px-4 py-2 text-sm animate-pulse">
+                <div className="bg-theme-surface text-theme-muted border border-theme-surface rounded-2xl rounded-tl-none px-4 py-2 text-sm animate-pulse">
                   Typing...
                 </div>
               </div>
@@ -132,24 +122,34 @@ export default function Chatbot({
           </div>
 
           {/* Input Area */}
-          <div className="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+          <div className="p-3 bg-theme-bg border-t border-theme-surface flex items-center gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Ask about your trip..."
-              className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ask about your destination..."
+              className="flex-1 bg-theme-surface text-theme-text placeholder:text-theme-muted border border-transparent rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-theme-primary/50 transition-all shadow-inner"
             />
             <button
               onClick={sendMessage}
               disabled={isLoading || !input.trim()}
-              className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 disabled:opacity-50"
+              className="bg-theme-primary text-theme-bg p-2 rounded-full hover:bg-theme-secondary disabled:opacity-50 transition-colors shadow-md"
             >
               <Send size={18} />
             </button>
           </div>
         </div>
+      )}
+
+      {/* Toggle Button */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="bg-theme-primary hover:bg-theme-secondary text-theme-bg p-4 rounded-full shadow-xl transition-transform transform hover:scale-105"
+        >
+          <MessageCircle size={28} />
+        </button>
       )}
     </div>
   );

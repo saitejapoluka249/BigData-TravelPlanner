@@ -2,14 +2,16 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   Map,
+  X,
   LogOut,
   User as UserIcon,
-  Sparkles,
   ChevronDown,
   Bookmark,
+  Home,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Link from "next/link";
@@ -18,14 +20,18 @@ interface NavbarProps {
   onMenuClick?: () => void;
   mapOpen?: boolean;
   onMapToggle?: () => void;
+  menuOpen?: boolean; // <-- Added menuOpen prop
 }
 
 export default function Navbar({
   onMenuClick = () => {},
   mapOpen = false,
   onMapToggle = () => {},
+  menuOpen = false, // <-- Default to false
 }: NavbarProps) {
   const { user, logout, isLoggedIn } = useAuth();
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -44,41 +50,48 @@ export default function Navbar({
   }, []);
 
   return (
-    <nav className="relative flex items-center justify-between px-4 md:px-6 py-3 border-b border-theme-surface bg-theme-bg flex-shrink-0 z-[60] shadow-sm min-h-[64px]">
+    <nav className="relative flex items-center justify-between px-3 md:px-6 py-3 border-b border-theme-surface bg-theme-bg flex-shrink-0 z-[60] shadow-sm min-h-[64px]">
       
-      <div className="flex items-center gap-4 flex-shrink-0">
+      {/* --- LEFT SECTION: Menu, Logo, Home Button --- */}
+      <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
+        
+        {/* Hamburger/Close Menu (Only visible on Home Page for mobile/tablet) */}
         <button
           onClick={onMenuClick}
-          className="p-2 rounded-xl bg-theme-text text-theme-bg lg:hidden hover:bg-theme-text/80 transition-colors"
-          aria-label="Open search panel"
+          className={`p-2 rounded-xl bg-theme-text text-theme-bg lg:hidden hover:bg-theme-text/80 transition-colors ${!isHomePage ? 'hidden lg:hidden' : ''}`}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
-          <Menu size={20} />
+          {/* Toggle between X and Menu icons */}
+          {menuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
-        <div className="flex flex-col lg:hidden">
-          <Link href="/" className="text-xl md:text-2xl font-extrabold text-theme-text tracking-tight flex items-center gap-1.5 md:gap-2">
-            WanderPlan <span className="text-theme-primary">US</span>
-          </Link>
-        </div>
-        {/* Added a Desktop logo specifically for pages without the Sidebar */}
-
+        {/* Logo and Conditional Return Home Button */}
+        {!isHomePage ? (
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/" className="text-lg sm:text-xl md:text-2xl font-extrabold text-theme-text tracking-tight flex items-center gap-1.5 md:gap-2">
+              WanderPlan <span className="text-theme-primary">US</span>
+            </Link>
+            <Link 
+              href="/"
+              title="Return Home"
+              className="flex items-center justify-center gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-sm font-semibold text-theme-text bg-theme-surface rounded-lg hover:bg-theme-secondary/20 transition-colors border border-theme-surface"
+            >
+              <Home size={18} />
+              {/* Text hidden on mobile, visible on sm (tablet) and up */}
+              <span className="hidden sm:block">Home</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="flex flex-col lg:hidden">
+            <Link href="/" className="text-xl md:text-2xl font-extrabold text-theme-text tracking-tight flex items-center gap-1.5 md:gap-2">
+              WanderPlan <span className="text-theme-primary">US</span>
+            </Link>
+          </div>
+        )}
       </div>
 
-      <div className="hidden md:flex flex-1 justify-center lg:justify-start max-w-xl px-4 lg:pl-12">
-        <div className="relative w-full md:w-[300px] flex items-center group">
-          <Sparkles size={16} className="absolute left-4 text-theme-secondary z-10" />
-          <input 
-            type="text"
-            placeholder="Ask AI to plan your trip..."
-            className="w-full pl-11 pr-5 py-2 bg-gradient-to-r from-theme-surface to-theme-bg text-theme-primary placeholder:text-theme-primary/70 border border-theme-secondary/30 rounded-full focus:outline-none focus:ring-2 focus:ring-theme-secondary focus:bg-theme-bg focus:shadow-md shadow-sm transition-all text-sm font-semibold"
-          />
-        </div>
-      </div>  
-
-      <div className="flex items-center justify-end gap-3 flex-shrink-0">
-        <button className="md:hidden p-2 rounded-xl bg-theme-surface text-theme-primary">
-          <Sparkles size={20} />
-        </button>
+      {/* --- RIGHT SECTION: Profile & Map Toggle --- */}
+      <div className="flex items-center justify-end gap-2 md:gap-3 flex-shrink-0">
 
         {isLoggedIn ? (
           <div className="relative" ref={dropdownRef}>
@@ -87,6 +100,7 @@ export default function Navbar({
               className="flex items-center gap-2 px-3 py-1.5 bg-theme-surface text-theme-text rounded-lg border border-theme-surface hover:bg-theme-secondary/20 transition-colors"
             >
               <UserIcon size={16} />
+              {/* Username hidden on very small screens, visible on sm and up */}
               <span className="text-sm font-semibold hidden sm:block max-w-[120px] truncate">
                 {user}
               </span>
@@ -130,22 +144,24 @@ export default function Navbar({
         ) : (
           <Link
             href="/auth"
-            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-theme-primary text-theme-bg rounded-xl hover:bg-theme-secondary transition-colors shadow-md shadow-theme-primary/30 text-sm font-bold"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-theme-primary text-theme-bg rounded-xl hover:bg-theme-secondary transition-colors shadow-md shadow-theme-primary/30 text-sm font-bold"
           >
             <UserIcon size={18} />
-            Login / Sign Up
+            <span className="hidden sm:inline">Login / Sign Up</span>
+            <span className="sm:hidden">Login</span>
           </Link>
         )}
 
-        <button
-          onClick={onMapToggle}
-          className={`p-2 rounded-xl text-theme-bg transition-colors md:hidden ${
-            mapOpen ? "bg-theme-primary" : "bg-theme-muted"
-          }`}
-          aria-label="Toggle map"
-        >
-          <Map size={20} />
-        </button>
+        {/* Map Toggle - Visible ONLY on Mobile (md:hidden) AND only on Home Page, switches to X when opened */}
+        {isHomePage && (
+          <button
+            onClick={onMapToggle}
+            className={`p-2 rounded-xl text-theme-bg opacity-100 transition-colors md:hidden bg-theme-primary`}
+            aria-label={mapOpen ? "Close map" : "Toggle map"}
+          >
+            {mapOpen ? <X size={20} /> : <Map size={20} />}
+          </button>
+        )}
       </div>
     </nav>
   );

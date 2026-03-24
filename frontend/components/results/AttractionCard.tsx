@@ -47,9 +47,7 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
   }
 
   return (
-    <div className="bg-theme-bg rounded-xl border border-theme-surface shadow-sm p-5">
-      <h3 className="text-2xl font-black text-theme-text tracking-tight mb-4">📸 Nearby Attractions</h3>
-      
+    <div className="bg-theme-bg rounded-xl p-2">
       <div className="flex flex-col gap-3">
         {attractions.slice(0, 12).map((poi, idx) => {
           const uniqueKey = poi.id || `attraction-${idx}`;
@@ -61,7 +59,7 @@ export default function AttractionsCard({ attractions }: { attractions: any[] })
             <div 
               key={uniqueKey} 
               className={`border rounded-xl p-4 transition-all duration-300 ease-in-out origin-center flex flex-row items-center justify-between gap-4 ${
-                isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10 shadow-sm' : 'border-theme-surface bg-theme-bg hover:border-theme-muted hover:shadow-md'
+                isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-bg/20 shadow-sm' : 'border-theme-surface bg-theme-bg/10 hover:border-theme-muted hover:shadow-md'
               }`}
             >
               <div className="flex flex-col gap-1.5">

@@ -81,7 +81,7 @@ export default function WeatherCard({ weather }: { weather: any }) {
 
       <div className="flex flex-col gap-3">
         {weather.days.map((day: any, idx: number) => (
-          <div key={idx} className="border border-theme-surface rounded-xl p-4 bg-theme-surface transition-colors shadow-sm flex flex-row items-center justify-between gap-4 hover:border-theme-muted">
+          <div key={idx} className="border border-theme-surface rounded-xl p-4 bg-theme-surface/50 transition-colors shadow-sm flex flex-row items-center justify-between gap-4 hover:border-theme-muted">
             
             <div className="flex items-center gap-4">
               <div className="text-4xl drop-shadow-sm shrink-0">

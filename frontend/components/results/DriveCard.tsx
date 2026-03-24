@@ -68,8 +68,8 @@ export default function DrivingCard({ drivingData }: { drivingData?: any }) {
       <div
         className={`bg-theme-bg rounded-xl overflow-hidden border p-5 transition-all duration-200 ${
           isSelected
-            ? "border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10"
-            : "border-theme-surface shadow-sm hover:border-theme-muted hover:shadow-md"
+            ? "border-theme-primary ring-1 ring-theme-primary bg-theme-bg/20"
+            : "border-theme-surface bg-theme-bg/10 shadow-sm hover:border-theme-muted hover:shadow-md"
         }`}
       >
         <div className="mb-6">
@@ -103,7 +103,7 @@ export default function DrivingCard({ drivingData }: { drivingData?: any }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-theme-surface p-4 rounded-xl border border-theme-surface shadow-sm flex flex-col justify-center">
+          <div className="bg-theme-bg/10 p-4 rounded-xl border border-theme-muted/50 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-black text-theme-muted block mb-1">
               Distance
             </span>
@@ -114,7 +114,7 @@ export default function DrivingCard({ drivingData }: { drivingData?: any }) {
               {drivingData.distance_km} km
             </span>
           </div>
-          <div className="bg-theme-surface p-4 rounded-xl border border-theme-surface shadow-sm flex flex-col justify-center">
+          <div className="bg-theme-bg/10 p-4 rounded-xl border border-theme-muted/50 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-black text-theme-muted block mb-1">
               Drive Time
             </span>
@@ -123,7 +123,7 @@ export default function DrivingCard({ drivingData }: { drivingData?: any }) {
               {Math.round(drivingData.duration_mins % 60)}m
             </span>
           </div>
-          <div className="bg-theme-muted/20 p-4 rounded-xl border border-theme-muted shadow-sm flex flex-col justify-center">
+          <div className="bg-theme-muted/10 p-4 rounded-xl border border-theme-muted/50 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-black text-theme-primary block mb-1">
               Fuel Estimate
             </span>
@@ -149,7 +149,7 @@ export default function DrivingCard({ drivingData }: { drivingData?: any }) {
           </button>
 
           {showIntermediates && (
-            <div className="mt-4 bg-theme-surface rounded-xl p-6 border border-theme-muted shadow-inner">
+            <div className="mt-4 bg-theme-muted/10 rounded-xl p-6 border border-theme-muted shadow-inner">
               <div className="relative flex flex-col gap-6 ml-2">
                 <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-theme-muted"></div>
 

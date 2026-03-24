@@ -187,12 +187,7 @@ export default function StaysCard({
   };
 
   return (
-    <div className="bg-theme-bg rounded-xl border border-theme-surface shadow-sm p-5">
-      <div className="flex justify-between items-end border-b border-theme-surface pb-3 mb-4">
-        <h3 className="text-2xl font-black text-theme-text tracking-tight">
-          🏨 Stays
-        </h3>
-      </div>
+    <div className="bg-theme-bg rounded-xl p-2">
       <div className="flex flex-col gap-3">
         {stays.slice(0, 12).map((stay, idx) => {
           const hId = stay.hotel_id || stay.hotelId || stay.id;

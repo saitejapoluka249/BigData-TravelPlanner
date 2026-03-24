@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Add this line to ensure Turbopack correctly resolves and transpiles the library
+  transpilePackages: ['react-datepicker'],
 };
 
 export default nextConfig;

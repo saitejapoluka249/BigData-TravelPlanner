@@ -298,21 +298,36 @@ export default function Dashboard() {
 
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Navbar
-          onMenuClick={() => setSidebarOpen(true)}
+          onMenuClick={() => {
+            if (!sidebarOpen) {
+              setSidebarOpen(true);
+              setMapOpen(false); // Close map if sidebar is opening
+            } else {
+              setSidebarOpen(false); // Just close sidebar if it's already open
+            }
+          }}
+          menuOpen={sidebarOpen}
           mapOpen={mapOpen}
-          onMapToggle={() => setMapOpen((v) => !v)}
+          onMapToggle={() => {
+            if (!mapOpen) {
+              setMapOpen(true);
+              setSidebarOpen(false); // Close sidebar if map is opening
+            } else {
+              setMapOpen(false); // Just close map if it's already open
+            }
+          }}
         />
 
         <div className="flex flex-1 overflow-hidden">
           {/* Main Trip Results Section */}
           <div
-            className={`flex-1 h-full overflow-y-auto custom-scrollbar bg-theme-bg/50 ${
+            className={`flex-1 h-full overflow-y-auto custom-scrollbar bg-theme-bg/20 ${
               mapOpen && !loading ? "hidden md:block" : ""
             }`}
           >
-            <div className="p-4 md:p-6 w-full relative">
-              <div className="flex justify-between items-center mb-4 md:mb-6">
-                <h1 className="text-xl md:text-2xl font-black text-theme-text tracking-tight">
+            <div className="p-4 md:p-4 w-full relative">
+              <div className="flex justify-between items-center md:mb-2">
+                <h1 className="text-xl md:text-xl font-black text-theme-text tracking-tight">
                   Trip Planner
                 </h1>
 

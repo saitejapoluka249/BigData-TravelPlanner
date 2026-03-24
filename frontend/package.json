@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@protomaps/basemaps": "^5.7.1",
-    "@types/react-datepicker": "^6.2.0",
     "axios": "^1.13.6",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.576.0",
@@ -28,6 +27,7 @@
     "@types/maplibre-gl": "^1.13.2",
     "@types/node": "^20",
     "@types/react": "^19",
+    "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",

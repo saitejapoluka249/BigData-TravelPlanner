@@ -107,7 +107,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
 
   if (!flights || !Array.isArray(flights) || flights.length === 0) {
     return (
-      <div className="p-8 text-center bg-theme-bg border border-dashed border-theme-muted rounded-xl text-theme-text/70 shadow-sm">
+      <div className="p-8 text-center bg-theme-bg border border-dashed border-theme-secondary/20 rounded-xl text-theme-text/70 shadow-sm">
         <span className="text-3xl block mb-2">📭</span>
         <h3 className="text-base font-bold text-theme-text">No flights found</h3>
         <p className="text-sm">Try adjusting your search dates or locations.</p>
@@ -121,7 +121,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
       <button
         onClick={() => setSortBy(id)}
         className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all border ${
-          isActive ? 'bg-theme-primary text-theme-bg border-theme-primary shadow-sm' : 'bg-theme-bg text-theme-text/80 border-theme-surface hover:bg-theme-surface'
+          isActive ? 'bg-theme-primary text-theme-bg border-theme-primary shadow-sm' : 'bg-theme-bg text-theme-text/80 border-theme-secondary hover:bg-theme-surface'
         }`}
       >
         {label}
@@ -131,10 +131,9 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-col xl:flex-row justify-between xl:items-end border-b border-theme-surface pb-3 gap-2">
+      <div className="flex flex-col xl:flex-row justify-between xl:items-end border-b border-theme-secondary/20 pb-3 gap-2">
         <div>
-          <h3 className="text-xl font-black text-theme-text tracking-tight">Results...</h3>
-          <p className="text-xs text-theme-text/70">
+          <p className="align-items-center text-xs text-theme-text">
             Showing {Math.min(flights.length, 12)} of {flights.length} options
           </p>
         </div>
@@ -154,11 +153,11 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
           <div 
             key={uniqueKey} 
             className={`rounded-lg overflow-hidden transition-all duration-200 border ${
-              isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-primary/10 shadow-sm' : 'border-theme-surface bg-theme-bg hover:border-theme-muted hover:shadow-md'
+              isSelected ? 'border-theme-primary ring-1 ring-theme-primary bg-theme-surface/20 shadow-sm' : 'border-theme-secondary/20 bg-theme-surface/20 hover:shadow-md'
             }`}
           >
             {/* Header */}
-            <div className={`px-3 py-1 border-b flex justify-between items-center ${isSelected ? 'bg-theme-muted/20 border-theme-muted/30' : 'bg-theme-surface/40 border-theme-surface'}`}>
+            <div className={`px-3 py-1 border-b flex justify-between items-center ${isSelected ? 'bg-theme-bg/20 border-theme-secondary/20' : 'bg-theme-bg/20 border-theme-secondary/20'}`}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 flex items-center justify-center overflow-hidden relative shrink-0">
                   <img src={`https://images.kiwi.com/airlines/64/${flight.airline_code}.png`} alt={flight.airline_code} className="max-w-[80%] max-h-[80%] object-contain" />
@@ -181,7 +180,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                   </p>
                 </div>
 
-                <label className="flex items-center gap-2 cursor-pointer bg-theme-bg text-theme-text px-4 py-2 rounded-lg hover:bg-theme-surface border border-theme-surface transition-colors shadow-sm shrink-0">
+                <label className="flex items-center gap-2 cursor-pointer bg-theme-bg text-theme-text px-4 py-2 rounded-lg hover:bg-theme-surface border border-theme-secondary transition-colors shadow-sm shrink-0">
                   <input 
                     type="checkbox" 
                     checked={isSelected} 
@@ -207,7 +206,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                   <div 
                     key={itinIndex} 
                     className={`flex-1 basis-[340px] p-4 ${theme.bg} ${
-                      isOutbound ? 'border-b xl:border-b-0 xl:border-r border-theme-surface/50' : ''
+                      isOutbound ? 'border-b xl:border-b-0 xl:border-r border-theme-secondary/20' : ''
                     }`}
                   >
                     <div className="flex justify-between items-center mb-3">
@@ -237,10 +236,10 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                         return (
                           <div key={segIndex} className={`relative z-10 flex gap-3 ${isLast ? '' : 'mb-3'}`}>
                             <div className="flex flex-col items-center mt-1">
-                              <div className={`w-3 h-3 rounded-full border-2 bg-theme-bg relative z-20 ${isOutbound ? 'border-theme-primary' : 'border-theme-secondary'}`}></div>
+                              <div className={`w-3 h-3 rounded-full border-2 bg-theme-bg relative z-20 ${isOutbound ? 'border-theme-secondary' : 'border-theme-accent'}`}></div>
                             </div>
 
-                            <div className="flex-1 bg-theme-bg p-3 rounded-lg border border-theme-surface shadow-sm relative">
+                            <div className="flex-1 bg-theme-bg p-3 rounded-lg border border-theme-secondary/20 shadow-sm relative">
                               <div className="flex justify-between items-center">
                                 <div>
                                   <p className="text-lg font-black text-theme-text leading-none">{formatTime(seg.departure_time)}</p>
@@ -268,7 +267,7 @@ export default function FlightCard({ flights, loading }: { flights: any[], loadi
                               </div>
                               {!isLast && nextSeg && (
                                 <div className="absolute left-1/2 -bottom-4 transform -translate-x-1/2 z-30">
-                                  <span className="bg-theme-accent/20 text-theme-accent text-[10px] uppercase tracking-widest font-black px-2 py-0.5 rounded-full border border-theme-accent/30 shadow-sm whitespace-nowrap">
+                                  <span className="bg-theme-accent/20 text-theme-accent text-[10px] uppercase tracking-widest font-black px-2 py-0.5 rounded-full border border-theme-secondary/40 shadow-sm whitespace-nowrap">
                                      Layover: {getLayoverDuration(seg.arrival_time, nextSeg.departure_time)}
                                   </span>
                                 </div>

@@ -1,3 +1,4 @@
+// frontend/components/ProfileModal.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -7,7 +8,7 @@ import { travelApi } from "@/services/api";
 interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onProfileUpdate: () => void; // Trigger sidebar refresh
+  onProfileUpdate: () => void;
 }
 
 export default function ProfileModal({
@@ -35,9 +36,11 @@ export default function ProfileModal({
     if (isOpen) {
       loadProfile();
     } else {
-      // Reset state when closed
       setSelectedFile(null);
-      setPreviewUrl(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl); // Cleanup memory leak
+        setPreviewUrl(null);
+      }
     }
   }, [isOpen]);
 
@@ -78,7 +81,7 @@ export default function ProfileModal({
       }
 
       await travelApi.updateProfile(formData);
-      onProfileUpdate(); // Tell sidebar to refresh
+      onProfileUpdate();
       onClose();
     } catch (error) {
       console.error("Failed to save profile", error);
@@ -92,13 +95,13 @@ export default function ProfileModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col text-white animate-in fade-in zoom-in duration-200">
+      <div className="bg-theme-bg border border-theme-surface w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col text-theme-text animate-in fade-in zoom-in duration-200">
         {/* Header */}
-        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/50">
+        <div className="p-4 border-b border-theme-surface flex justify-between items-center bg-theme-surface/50">
           <h2 className="text-lg font-bold">Profile Settings</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded-lg text-theme-muted hover:text-theme-text hover:bg-theme-surface transition-colors"
           >
             <X size={20} />
           </button>
@@ -106,14 +109,14 @@ export default function ProfileModal({
 
         {loading ? (
           <div className="p-10 flex justify-center items-center">
-            <Loader2 className="animate-spin text-blue-500" size={32} />
+            <Loader2 className="animate-spin text-theme-primary" size={32} />
           </div>
         ) : (
           <div className="p-6 flex flex-col gap-5">
             {/* Image Upload Section */}
             <div className="flex flex-col items-center gap-3">
               <div
-                className="w-24 h-24 rounded-full border-2 border-slate-700 overflow-hidden bg-slate-800 flex items-center justify-center relative group cursor-pointer"
+                className="w-24 h-24 rounded-full border-2 border-theme-surface overflow-hidden bg-theme-surface flex items-center justify-center relative group cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {previewUrl ? (
@@ -129,7 +132,7 @@ export default function ProfileModal({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User size={40} className="text-slate-500" />
+                  <User size={40} className="text-theme-muted" />
                 )}
 
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -145,7 +148,7 @@ export default function ProfileModal({
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+                className="text-xs text-theme-primary hover:text-theme-secondary font-bold"
               >
                 Change Picture
               </button>
@@ -153,7 +156,7 @@ export default function ProfileModal({
 
             {/* Form Fields */}
             <div>
-              <label className="text-[10px] font-bold tracking-[0.1em] uppercase text-slate-400 ml-1 mb-1 block">
+              <label className="text-[10px] font-bold tracking-[0.1em] uppercase text-theme-muted ml-1 mb-1 block">
                 Full Name
               </label>
               <input
@@ -163,12 +166,12 @@ export default function ProfileModal({
                   setProfile({ ...profile, full_name: e.target.value })
                 }
                 placeholder="John Doe"
-                className="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm transition-all"
+                className="w-full p-2.5 rounded-xl bg-theme-surface border border-theme-surface focus:border-theme-primary focus:ring-1 focus:ring-theme-primary outline-none text-sm transition-all text-theme-text placeholder:text-theme-muted"
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-bold tracking-[0.1em] uppercase text-slate-400 ml-1 mb-1 block">
+              <label className="text-[10px] font-bold tracking-[0.1em] uppercase text-theme-muted ml-1 mb-1 block">
                 Email Address
               </label>
               <input
@@ -178,12 +181,12 @@ export default function ProfileModal({
                   setProfile({ ...profile, email: e.target.value })
                 }
                 placeholder="john@example.com"
-                className="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm transition-all"
+                className="w-full p-2.5 rounded-xl bg-theme-surface border border-theme-surface focus:border-theme-primary focus:ring-1 focus:ring-theme-primary outline-none text-sm transition-all text-theme-text placeholder:text-theme-muted"
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-bold tracking-[0.1em] uppercase text-slate-400 ml-1 mb-1 block">
+              <label className="text-[10px] font-bold tracking-[0.1em] uppercase text-theme-muted ml-1 mb-1 block">
                 Mobile Number
               </label>
               <input
@@ -193,14 +196,14 @@ export default function ProfileModal({
                   setProfile({ ...profile, mobile_number: e.target.value })
                 }
                 placeholder="+1 (555) 000-0000"
-                className="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm transition-all"
+                className="w-full p-2.5 rounded-xl bg-theme-surface border border-theme-surface focus:border-theme-primary focus:ring-1 focus:ring-theme-primary outline-none text-sm transition-all text-theme-text placeholder:text-theme-muted"
               />
             </div>
 
             <button
               onClick={handleSave}
               disabled={saving}
-              className="mt-2 w-full p-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-70"
+              className="mt-2 w-full p-3 rounded-xl bg-theme-primary hover:bg-theme-secondary text-theme-bg font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-70 shadow-md"
             >
               {saving ? (
                 <Loader2 size={18} className="animate-spin" />
