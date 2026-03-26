@@ -261,7 +261,6 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
             
             <div className="flex flex-wrap gap-2">
                 <div className="flex-1 min-w-[120px] relative">
-                <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-secondary pointer-events-none z-10" />
                 <DatePicker
                   selected={dates.start ? new Date(dates.start + "T12:00:00") : null}
                   onChange={(date: Date | null): void => {
@@ -282,11 +281,12 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
                   popperPlacement="bottom-start"
                   className={`w-full py-[9px] pl-8 pr-3 bg-theme-bg border-[1.5px] ${errors.start ? 'border-red-500' : 'border-theme-secondary/30'} rounded-[10px] font-semibold text-[13px] text-theme-text focus:border-theme-secondary focus:ring-1 focus:ring-theme-secondary outline-none`}
                 />
+                 <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-secondary pointer-events-none z-10" />
+
                 {errors.start && <span className="text-red-400 text-[11px] mt-1 block font-medium">{errors.start}</span>}
                 </div>
               
               <div className="flex-1 min-w-[120px] relative">
-                <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-secondary pointer-events-none z-10" />
                 <DatePicker
                   selected={dates.end ? new Date(dates.end + "T12:00:00") : null}
                   onChange={(date: Date | null) => {
@@ -300,6 +300,8 @@ export default function Sidebar({ onSearch, onSearchStart, onCancel, loading, on
                   popperPlacement="bottom-start"
                   className={`w-full py-[9px] pl-8 pr-3 bg-theme-bg border-[1.5px] ${errors.end ? 'border-red-500' : 'border-theme-secondary/30'} rounded-[10px] font-semibold text-[13px] text-theme-text focus:border-theme-secondary focus:ring-1 focus:ring-theme-secondary outline-none`}
                 />
+                 <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-secondary pointer-events-none z-10" />
+
                 {errors.end && <span className="text-red-400 text-[11px] mt-1 block font-medium">{errors.end}</span>}
               </div>
             </div>
