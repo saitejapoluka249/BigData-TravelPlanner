@@ -49,6 +49,7 @@ export default function ItineraryModal({
   // Save Trip State
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isAlreadySaved, setIsAlreadySaved] = useState(false); // Add this new state
 
   // Grab user and isLoggedIn from AuthContext
   const { user, isLoggedIn } = useAuth();
@@ -70,6 +71,7 @@ export default function ItineraryModal({
       setShowEmailInput(false);
       setEmail("");
       setIsSaved(false);
+      setIsAlreadySaved(false); // Add this line
     }
   }, [isOpen]);
 
@@ -191,16 +193,15 @@ export default function ItineraryModal({
       setIsSharing(false);
     }
   };
-
   // --- NEW: Save Trip Logic ---
   const handleSaveTrip = async () => {
     if (!isLoggedIn) return; // Failsafe
     setIsSaving(true);
-    try {
-      const cachedTripStr = sessionStorage.getItem("current_trip_results");
-      const cachedTrip = cachedTripStr ? JSON.parse(cachedTripStr) : {};
+    setIsAlreadySaved(false); // Reset before attempting to save
 
-      // Formatting data structure to save properly in the database
+    try {
+      // Create a heavily stripped-down version of the data
+      // to prevent database bloat. We only save what the SavedTrips UI needs.
       const tripDataToSave = {
         destination:
           rawParams?.destination?.city ||
@@ -208,17 +209,65 @@ export default function ItineraryModal({
           "Trip",
         check_in_date: rawParams?.startDate,
         check_out_date: rawParams?.endDate,
-        weather: weatherData || cachedTrip.weather,
-        flight: flight,
-        hotel: stay,
-        attractions: attractions,
-        activities: tours,
-        rawParams: rawParams,
-        selections: selections,
+
+        // 1. Minimized Flight Data
+        flight: flight
+          ? {
+              airline_name: flight.airline_name,
+              price: flight.price?.total || flight.price,
+              itineraries: [
+                {
+                  segments: [
+                    {
+                      departure_airport:
+                        flight.itineraries?.[0]?.segments?.[0]
+                          ?.departure_airport,
+                      arrival_airport:
+                        flight.itineraries?.[0]?.segments?.slice(-1)[0]
+                          ?.arrival_airport,
+                    },
+                  ],
+                },
+              ],
+            }
+          : null,
+
+        // 2. Minimized Hotel Data
+        hotel: stay
+          ? {
+              name: stay.name,
+              price: stay.offerDetails?.price || stay.price,
+              address: { lines: stay.address?.lines || [] },
+            }
+          : null,
+
+        // 3. Minimized Attractions & Activities (Just storing the names)
+        attractions: attractions
+          ? attractions.map((a: any) => ({ name: a.name }))
+          : [],
+        activities: tours
+          ? tours.map((t: any) => ({ name: t.name || t.title }))
+          : [],
+
+        // 4. Minimized rawParams (Just enough to generate the "Origin to Destination" title)
+        rawParams: {
+          source: {
+            name:
+              rawParams?.source?.name?.split(",")[0] || rawParams?.source?.city,
+          },
+          startDate: rawParams?.startDate,
+          endDate: rawParams?.endDate,
+        },
       };
 
-      await travelApi.saveTrip(tripDataToSave);
-      setIsSaved(true);
+      const response = await travelApi.saveTrip(tripDataToSave);
+
+      // Check the message returned from the backend
+      if (response && response.message === "Trip already saved!") {
+        setIsAlreadySaved(true);
+      } else {
+        setIsSaved(true);
+      }
     } catch (error) {
       console.error(error);
       alert("Failed to save the trip. Please try again.");
@@ -492,24 +541,43 @@ export default function ItineraryModal({
         <div className="p-4 sm:p-6 border-t border-theme-surface bg-theme-bg shrink-0 flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Conditional 'Save Trip' Button Rendered ONLY if user is logged in */}
+            {/* Conditional 'Save Trip' Button Rendered ONLY if user is logged in */}
             {isLoggedIn && (
               <button
                 onClick={handleSaveTrip}
-                disabled={isSaving || isSaved || isExporting || isSharing}
+                disabled={
+                  isSaving ||
+                  isSaved ||
+                  isAlreadySaved ||
+                  isExporting ||
+                  isSharing
+                }
                 className={`flex-1 flex items-center justify-center gap-2 py-3.5 sm:py-4 rounded-2xl font-black text-sm transition-all active:scale-95 ${
-                  isSaving || isSaved || isExporting || isSharing
+                  isSaving ||
+                  isSaved ||
+                  isAlreadySaved ||
+                  isExporting ||
+                  isSharing
                     ? "bg-theme-surface text-theme-muted cursor-not-allowed shadow-none"
                     : "bg-theme-secondary text-theme-bg shadow-lg shadow-theme-secondary/20 hover:opacity-90"
                 }`}
               >
                 {isSaving ? (
                   <Loader2 size={18} className="animate-spin" />
+                ) : isAlreadySaved ? (
+                  <Save size={18} className="text-yellow-500" />
                 ) : isSaved ? (
                   <Save size={18} className="text-green-500" />
                 ) : (
                   <Save size={18} />
                 )}
-                {isSaving ? "Saving..." : isSaved ? "Saved!" : "Save Trip"}
+                {isSaving
+                  ? "Saving..."
+                  : isAlreadySaved
+                  ? "Already Saved!"
+                  : isSaved
+                  ? "Saved!"
+                  : "Save Trip"}
               </button>
             )}
 

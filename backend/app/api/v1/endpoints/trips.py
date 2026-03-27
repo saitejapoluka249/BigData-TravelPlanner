@@ -122,6 +122,17 @@ async def save_trip(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user)
 ):
+    # Fetch existing trips for this user
+    existing_trips = db.query(SavedTrip).filter(SavedTrip.user_id == current_user.id).all()
+
+    # Compare the new payload against existing saved trips
+    for trip in existing_trips:
+        # Python handles deep dictionary comparison perfectly.
+        # This checks if the destination, dates, flights, hotels, and attractions are IDENTICAL.
+        if trip.data == payload:
+            return {"message": "Trip already saved!"}
+
+    # If no exact match is found, save the new trip
     new_trip = SavedTrip(
         destination=payload.get("destination", "My Trip"),
         data=payload,

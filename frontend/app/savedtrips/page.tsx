@@ -11,8 +11,11 @@ interface SavedTrip {
   id: number;
   destination: string;
   data: {
-    startDate: string;
-    endDate: string;
+    check_in_date?: string;
+    check_out_date?: string;
+    startDate?: string;
+    endDate?: string;
+    rawParams?: any;
     flight?: any;
     hotel?: any;
     weather?: any;
@@ -67,6 +70,17 @@ export default function SavedTripsPage() {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  // Helper function to format "Origin to Destination"
+  const getTripTitle = (trip: SavedTrip) => {
+    const source =
+      trip.data.rawParams?.source?.name?.split(",")[0] ||
+      trip.data.rawParams?.source?.city;
+    if (source) {
+      return `${source} to ${trip.destination}`;
+    }
+    return trip.destination;
   };
 
   if (!isLoggedIn) {
@@ -137,11 +151,19 @@ export default function SavedTripsPage() {
               >
                 <div className="p-6 flex-grow">
                   <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-xl font-black text-theme-text line-clamp-1">
-                      {trip.destination}
+                    <h2
+                      className="text-xl font-black text-theme-text line-clamp-1"
+                      title={getTripTitle(trip)}
+                    >
+                      {getTripTitle(trip)}
                     </h2>
                     <span className="bg-theme-primary/10 text-theme-primary text-xs font-black px-2 py-1 rounded-md whitespace-nowrap border border-theme-primary/20">
-                      {formatDate(trip.data.startDate)}
+                      {formatDate(
+                        trip.data.check_in_date ||
+                          trip.data.rawParams?.startDate ||
+                          trip.data.startDate ||
+                          ""
+                      )}
                     </span>
                   </div>
 
@@ -200,13 +222,24 @@ export default function SavedTripsPage() {
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-theme-surface flex justify-between items-center bg-theme-surface/50">
               <div>
-                <h2 className="text-xl font-black text-theme-text">
-                  {selectedTrip.destination} Itinerary
+                <h2 className="text-xl font-black text-theme-text line-clamp-1">
+                  {getTripTitle(selectedTrip)}
                 </h2>
                 <p className="text-xs font-bold text-theme-text/60 uppercase tracking-widest mt-1">
                   <Calendar size={12} className="inline mr-1 mb-0.5" />
-                  {formatDate(selectedTrip.data.startDate)} —{" "}
-                  {formatDate(selectedTrip.data.endDate)}
+                  {formatDate(
+                    selectedTrip.data.check_in_date ||
+                      selectedTrip.data.rawParams?.startDate ||
+                      selectedTrip.data.startDate ||
+                      ""
+                  )}{" "}
+                  —{" "}
+                  {formatDate(
+                    selectedTrip.data.check_out_date ||
+                      selectedTrip.data.rawParams?.endDate ||
+                      selectedTrip.data.endDate ||
+                      ""
+                  )}
                 </p>
               </div>
               <button
@@ -259,7 +292,8 @@ export default function SavedTripsPage() {
               {selectedTrip.data.hotel && (
                 <div>
                   <h3 className="text-sm font-black text-theme-text/80 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Hotel size={16} className="text-theme-primary" /> Accommodation
+                    <Hotel size={16} className="text-theme-primary" />{" "}
+                    Accommodation
                   </h3>
                   <div className="bg-theme-primary/10 border border-theme-primary/20 rounded-xl p-4">
                     <div className="flex justify-between items-start">
@@ -289,8 +323,8 @@ export default function SavedTripsPage() {
                 selectedTrip.data.attractions.length > 0 && (
                   <div>
                     <h3 className="text-sm font-black text-theme-text/80 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <Map size={16} className="text-theme-secondary" /> Attractions
-                      to Visit
+                      <Map size={16} className="text-theme-secondary" />{" "}
+                      Attractions to Visit
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {selectedTrip.data.attractions.map((attr, idx) => (
