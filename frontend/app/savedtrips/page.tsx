@@ -21,6 +21,7 @@ interface SavedTrip {
     weather?: any;
     activities?: any[];
     attractions?: any[];
+    tours?: any[];
   };
 }
 
@@ -339,6 +340,34 @@ export default function SavedTripsPage() {
                     </div>
                   </div>
                 )}
+
+              {/* Tours & Activities Info */}
+              {((selectedTrip.data.activities &&
+                selectedTrip.data.activities.length > 0) ||
+                (selectedTrip.data.tours &&
+                  selectedTrip.data.tours.length > 0)) && (
+                <div>
+                  <h3 className="text-sm font-black text-theme-text/80 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Ticket size={16} className="text-theme-secondary" /> Tours
+                    & Activities
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {(
+                      selectedTrip.data.activities ||
+                      selectedTrip.data.tours ||
+                      []
+                    ).map((tour: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="bg-theme-surface border border-theme-muted/30 p-3 rounded-lg text-sm font-medium text-theme-text/80 flex items-start gap-2"
+                      >
+                        <span className="text-theme-secondary mt-0.5">•</span>{" "}
+                        {tour.name || tour.title}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}

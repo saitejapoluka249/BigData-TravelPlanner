@@ -84,6 +84,9 @@ export default function ItineraryModal({
   const attractions = selections?.attractions || [];
   const tours = selections?.tours || selections?.activities || [];
 
+  // Check if Weather was actually selected on the home page
+  const isWeatherSelected = selections?.weather?.selected === true;
+
   // Calculate Total Cost
   let totalCost = 0;
   if (flight) totalCost += flight.price || 0;
@@ -94,13 +97,18 @@ export default function ItineraryModal({
     }
   });
 
-  // FIXED: Properly Extract first day weather for summary
+  // Extract first day weather for summary ONLY if selected
   let firstDayWeather = null;
-  if (weatherData?.days && weatherData.days.length > 0) {
-    firstDayWeather = weatherData.days[0];
-  } else if (weatherData?.data?.days && weatherData.data.days.length > 0) {
-    // Fallback if data is wrapped
-    firstDayWeather = weatherData.data.days[0];
+  if (isWeatherSelected) {
+    const activeWeatherData = selections?.weather?.data || weatherData;
+    if (activeWeatherData?.days && activeWeatherData.days.length > 0) {
+      firstDayWeather = activeWeatherData.days[0];
+    } else if (
+      activeWeatherData?.data?.days &&
+      activeWeatherData.data.days.length > 0
+    ) {
+      firstDayWeather = activeWeatherData.data.days[0];
+    }
   }
 
   const formatDate = (dateStr: string) => {
@@ -134,7 +142,10 @@ export default function ItineraryModal({
         username: user || "Traveler",
         check_in_date: rawParams?.startDate,
         check_out_date: rawParams?.endDate,
-        weather: weatherData || cachedTrip.weather,
+        // Only send weather data if it was selected by the user
+        weather: isWeatherSelected
+          ? selections?.weather?.data || weatherData || cachedTrip.weather
+          : null,
         flight: flight,
         hotel: stay,
         attractions: attractions,
@@ -178,7 +189,10 @@ export default function ItineraryModal({
         username: user || "Traveler",
         check_in_date: rawParams?.startDate,
         check_out_date: rawParams?.endDate,
-        weather: weatherData || cachedTrip.weather,
+        // Only send weather data if it was selected by the user
+        weather: isWeatherSelected
+          ? selections?.weather?.data || weatherData || cachedTrip.weather
+          : null,
         flight: flight,
         hotel: stay,
         attractions: attractions,
@@ -197,7 +211,6 @@ export default function ItineraryModal({
     }
   };
 
-  // --- UPDATED: Save Trip Logic ---
   const handleSaveTrip = async () => {
     if (!isLoggedIn) return; // Failsafe
     setIsSaving(true);
@@ -333,8 +346,8 @@ export default function ItineraryModal({
                 highlight
               />
 
-              {/* FIXED: Weather Rendering */}
-              {firstDayWeather && (
+              {/* Only render Weather block if weather was toggled ON and data exists */}
+              {isWeatherSelected && firstDayWeather && (
                 <div className="mt-2 p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-400/5 border border-blue-500/20">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-blue-600/70">
