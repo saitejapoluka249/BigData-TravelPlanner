@@ -49,7 +49,7 @@ export default function ItineraryModal({
   // Save Trip State
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [isAlreadySaved, setIsAlreadySaved] = useState(false); // Add this new state
+  const [isAlreadySaved, setIsAlreadySaved] = useState(false);
 
   // Grab user and isLoggedIn from AuthContext
   const { user, isLoggedIn } = useAuth();
@@ -71,7 +71,7 @@ export default function ItineraryModal({
       setShowEmailInput(false);
       setEmail("");
       setIsSaved(false);
-      setIsAlreadySaved(false); // Add this line
+      setIsAlreadySaved(false);
     }
   }, [isOpen]);
 
@@ -94,10 +94,13 @@ export default function ItineraryModal({
     }
   });
 
-  // Extract first day weather for summary
+  // FIXED: Properly Extract first day weather for summary
   let firstDayWeather = null;
-  if (weatherData && Object.keys(weatherData).length > 0) {
-    firstDayWeather = Object.values(weatherData)[0] as any;
+  if (weatherData?.days && weatherData.days.length > 0) {
+    firstDayWeather = weatherData.days[0];
+  } else if (weatherData?.data?.days && weatherData.data.days.length > 0) {
+    // Fallback if data is wrapped
+    firstDayWeather = weatherData.data.days[0];
   }
 
   const formatDate = (dateStr: string) => {
@@ -193,7 +196,8 @@ export default function ItineraryModal({
       setIsSharing(false);
     }
   };
-  // --- NEW: Save Trip Logic ---
+
+  // --- UPDATED: Save Trip Logic ---
   const handleSaveTrip = async () => {
     if (!isLoggedIn) return; // Failsafe
     setIsSaving(true);
@@ -329,6 +333,7 @@ export default function ItineraryModal({
                 highlight
               />
 
+              {/* FIXED: Weather Rendering */}
               {firstDayWeather && (
                 <div className="mt-2 p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-400/5 border border-blue-500/20">
                   <div className="flex items-center justify-between mb-2">
@@ -339,14 +344,27 @@ export default function ItineraryModal({
                   </div>
                   <div className="flex items-end gap-2">
                     <span className="text-2xl font-black text-theme-text">
-                      {Math.round(firstDayWeather.temperature_max)}°
+                      {Math.round(
+                        firstDayWeather.max_temp ??
+                          firstDayWeather.temperature_max ??
+                          0
+                      )}
+                      °
                     </span>
                     <span className="text-sm font-bold text-theme-muted mb-1">
-                      / {Math.round(firstDayWeather.temperature_min)}° F
+                      /{" "}
+                      {Math.round(
+                        firstDayWeather.min_temp ??
+                          firstDayWeather.temperature_min ??
+                          0
+                      )}
+                      ° F
                     </span>
                   </div>
                   <p className="text-xs font-semibold text-theme-text/70 mt-1 capitalize">
-                    {firstDayWeather.weather_description || "Clear skies"}
+                    {firstDayWeather.weather ??
+                      firstDayWeather.weather_description ??
+                      "Clear skies"}
                   </p>
                 </div>
               )}
@@ -540,7 +558,6 @@ export default function ItineraryModal({
         {/* Footer Actions */}
         <div className="p-4 sm:p-6 border-t border-theme-surface bg-theme-bg shrink-0 flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Conditional 'Save Trip' Button Rendered ONLY if user is logged in */}
             {/* Conditional 'Save Trip' Button Rendered ONLY if user is logged in */}
             {isLoggedIn && (
               <button
