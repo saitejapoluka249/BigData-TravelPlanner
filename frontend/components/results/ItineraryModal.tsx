@@ -128,6 +128,17 @@ export default function ItineraryModal({
     });
   };
 
+  // --- NEW: Helper function to generate "Origin to Destination" for PDFs ---
+  const getFullTripTitle = () => {
+    const source =
+      rawParams?.source?.name?.split(",")[0] || rawParams?.source?.city;
+    const dest =
+      rawParams?.destination?.name?.split(",")[0] ||
+      rawParams?.destination?.city ||
+      "Trip";
+    return source ? `${source} to ${dest}` : dest;
+  };
+
   const handleExportPdf = async () => {
     setIsExporting(true);
     try {
@@ -135,10 +146,7 @@ export default function ItineraryModal({
       const cachedTrip = cachedTripStr ? JSON.parse(cachedTripStr) : {};
 
       const pdfBlob = await travelApi.exportPdf({
-        destination:
-          rawParams?.destination?.city ||
-          rawParams?.destination?.name ||
-          "Trip",
+        destination: getFullTripTitle(), // <-- Using the combined Origin to Destination
         username: user || "Traveler",
         check_in_date: rawParams?.startDate,
         check_out_date: rawParams?.endDate,
@@ -158,7 +166,7 @@ export default function ItineraryModal({
         link.href = url;
         link.setAttribute(
           "download",
-          `${rawParams?.destination?.city || "Itinerary"}.pdf`
+          `${getFullTripTitle().replace(/\s+/g, "_")}.pdf` // Nicely formats the downloaded filename too!
         );
         document.body.appendChild(link);
         link.click();
@@ -182,10 +190,7 @@ export default function ItineraryModal({
       const cachedTrip = cachedTripStr ? JSON.parse(cachedTripStr) : {};
 
       const payload = {
-        destination:
-          rawParams?.destination?.city ||
-          rawParams?.destination?.name ||
-          "Trip",
+        destination: getFullTripTitle(), // <-- Using the combined Origin to Destination
         username: user || "Traveler",
         check_in_date: rawParams?.startDate,
         check_out_date: rawParams?.endDate,
@@ -220,6 +225,7 @@ export default function ItineraryModal({
       // Create a heavily stripped-down version of the data
       // to prevent database bloat. We only save what the SavedTrips UI needs.
       const tripDataToSave = {
+        // We purposefully keep destination as just the destination here for the DB
         destination:
           rawParams?.destination?.city ||
           rawParams?.destination?.name ||
