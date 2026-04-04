@@ -43,7 +43,7 @@ export default function Chatbot({
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/chatbot/",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/chatbot/`,
         {
           messages: newMessages,
           context: currentDestination
