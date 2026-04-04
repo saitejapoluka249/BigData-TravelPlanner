@@ -11,10 +11,18 @@ class WeatherService:
         self.api_key = settings.WEATHER_API_KEY
 
     async def get_weather_for_trip(self, lat: float, lon: float, check_in_date: str, check_out_date: str):
-        print(f"🔍 [WEATHER] CACHE MISS: Fetching forecast for {lat}, {lon} from {check_in_date}")
-        check_in = datetime.strptime(check_in_date, "%Y-%m-%d")
-        check_out = datetime.strptime(check_out_date, "%Y-%m-%d")
+        check_in = datetime.strptime(check_in_date, "%Y-%m-%d")                                                                                                                                                             
+        check_out = datetime.strptime(check_out_date, "%Y-%m-%d") 
+        
         now = datetime.now()
+
+        if check_in > check_out:
+            return {'error': 'Invalid date format (end, start)', 'status_code': 400}
+        
+        if check_in.date() < now.date():
+            return {'error': 'Cannot request weather for dates in the past', 'status_code': 400}
+
+        print(f"🔍 [WEATHER] CACHE MISS: Fetching forecast for {lat}, {lon} from {check_in_date}")
 
         days_until_trip = (check_in - now).days
 
@@ -31,7 +39,7 @@ class WeatherService:
                 print(f"🌤️ Fetching Forecast for {lat}, {lon}")
                 forecast_response = await client.get(forecast_url, params=forecast_params, timeout=15.0)
                 if forecast_response.status_code != 200:
-                    return {"error": "Failed to fetch data from OpenWeather."}
+                    return {"error": "Failed to fetch data from OpenWeather.", "status_code": 400}
                 
                 forecast_data = forecast_response.json()
                 
