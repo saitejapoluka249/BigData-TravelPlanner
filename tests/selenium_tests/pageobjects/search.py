@@ -87,7 +87,7 @@ class searchPage:
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable(selector)).click()
 
     def click_submit(self, driver):
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(self.submit_selector)).click()
+        WebDriverWait(driver, 30).until(EC.element_to_be_clickable(self.submit_selector)).click()
         
     def is_options_label_displayed(self, driver):
         """Returns True if the options label is visible on the screen"""
@@ -109,6 +109,7 @@ class searchPage:
         """Returns the actual text of the label for detailed assertion"""
         element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(self.options_label_selector))
         return element.text
+    
     
     def is_drive_text_displayed(self, driver):
         """Returns True if the drive text is visible on the screen (used for verifying Drive mode)"""

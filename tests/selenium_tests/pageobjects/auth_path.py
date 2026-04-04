@@ -15,7 +15,6 @@ class AuthPage:
     google_auth_selector = (By.XPATH, '//*[@id="btn-google-login"]')
     submit_selector = (By.XPATH, '//*[@id="btn-submit-auth"]')
     
-    
     def enter_email(self, driver, email_text):
         element = driver.find_element(*self.email_selector)
         element.clear()
