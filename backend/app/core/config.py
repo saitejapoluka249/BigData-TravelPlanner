@@ -1,3 +1,4 @@
+# backend/app/core/config.py
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
@@ -21,15 +22,19 @@ class Settings(BaseSettings):
     BDC_API_KEY: str  
 
     POSTGRES_URL: str 
-    # --- ADD THESE NEW VARIABLES ---
+    
+    # Email Settings
     SMTP_SERVER: str = "smtp.gmail.com" # Default for Gmail
     SMTP_PORT: int = 587
     SMTP_USERNAME: str = "" # Add to your .env
     SMTP_PASSWORD: str = "" # Add to your .env (Use App Passwords for Gmail)
     FROM_EMAIL: str = ""    # Add to your .env
     OPENAI_API_KEY: str = ""
+    
+    # 🌟 NEW: Added Mapbox API Key
+    MAPBOX_API_KEY: str = "" 
 
-    # 🌟 FIX: Use SettingsConfigDict for Pydantic V2 instead of the inner Config class
+    # Use SettingsConfigDict for Pydantic V2 instead of the inner Config class
     model_config = SettingsConfigDict(
         env_file=".env", 
         env_file_encoding="utf-8", 
