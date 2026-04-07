@@ -1,8 +1,10 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# frontend/.gitignore
+
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -11,14 +13,14 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build
 
 # misc
 .DS_Store
@@ -39,3 +41,28 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# backend/.gitignore
+
+# Python compilation files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment (Crucial!)
+.venv/
+venv/
+env/
+
+# Database
+*.sqlite3
+*.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# Testing
+
+# Pytest cache
+.pytest_cache
