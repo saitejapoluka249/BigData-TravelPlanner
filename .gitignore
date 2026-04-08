@@ -63,6 +63,7 @@ env/
 .idea/
 
 # Testing
+report.html
 
 # Pytest cache
 .pytest_cache
