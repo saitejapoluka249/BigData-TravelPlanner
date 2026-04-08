@@ -4,7 +4,7 @@ from app.api.v1.endpoints.driving import *
 
 pytestmark = pytest.mark.asyncio
 
-
+@pytest.mark.regression
 class TestDriving():
     api_path = "/api/v1/driving/route"
 

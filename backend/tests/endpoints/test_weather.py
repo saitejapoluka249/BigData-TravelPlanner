@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 pytestmark = pytest.mark.asyncio
 
+@pytest.mark.regression
 class Test_Weather():
     api_path = "/api/v1/weather/forecast"
     today = date.today()

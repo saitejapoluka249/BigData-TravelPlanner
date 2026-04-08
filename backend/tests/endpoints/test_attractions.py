@@ -5,7 +5,7 @@ from app.schemas.attraction import Attraction
 
 pytestmark = pytest.mark.asyncio
 
-
+@pytest.mark.regression
 class TestAttractions():
     api_path = '/api/v1/attractions/nearby'
 

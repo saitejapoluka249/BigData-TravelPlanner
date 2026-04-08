@@ -11,7 +11,7 @@ def _mock_openai_response(content="Hello traveler!"):
     mock_response.choices[0].message.content = content
     return mock_response
 
-
+@pytest.mark.regression
 class TestChatbot():
     api_path = "/api/v1/chatbot/"
 

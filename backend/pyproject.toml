@@ -14,3 +14,15 @@ test = [
 testpaths = ["tests"] 
 pythonpath = ["."]
 asyncio_mode = "auto"
+
+# Modern, readable list format
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
+
+markers = [
+    "smoke: Critical heart-rate and GPS parsing checks",
+    "regression: Full multi-sport analysis suite",
+]

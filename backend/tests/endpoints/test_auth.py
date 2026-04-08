@@ -4,6 +4,7 @@ from app.main import app
 from app.db.models import User
 from app.schemas.auth import Token, UserCreate, UserLogin, ForgotPassword, ResetPassword
 
+@pytest.mark.regression
 class TestAuth():
     api_path = "/api/v1/auth"
     api_path_signup = api_path + "/signup"

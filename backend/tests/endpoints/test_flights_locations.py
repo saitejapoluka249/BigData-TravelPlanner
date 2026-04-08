@@ -31,8 +31,7 @@ class FlightOffer(BaseModel):
     cabin_class: str
     itineraries: List[FlightItinerary]
 
-
-
+@pytest.mark.regression
 class Testapiendpoints():
 
     get_airport_endpoint_param = ("lat, long, expected_output",

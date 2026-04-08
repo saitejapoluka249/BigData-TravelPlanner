@@ -6,6 +6,7 @@ from app.api.v1.deps import get_current_user
 
 pytestmark = pytest.mark.asyncio
 
+@pytest.mark.regression
 class Test_Users():
     api_path = "/api/v1/users/me"
 

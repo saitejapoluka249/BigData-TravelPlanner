@@ -14,6 +14,7 @@ def _future_dates(months=1, stay_days=3):
     return str(check_in), str(check_out)
 
 
+@pytest.mark.regression
 class TestHotelsNearby():
     api_path = "/api/v1/hotels/nearby"
 
@@ -107,6 +108,7 @@ class TestHotelsNearby():
             assert response.json() == expected_body
 
 
+@pytest.mark.regression
 class TestHotelOffer():
     api_path = "/api/v1/hotels/offer"
 

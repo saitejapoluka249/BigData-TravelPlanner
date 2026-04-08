@@ -4,6 +4,7 @@ import app.api.v1.endpoints.activities as activities
 
 pytestmark = pytest.mark.asyncio
 
+@pytest.mark.regression
 class TestActivities():
     api_path = '/api/v1/activities/nearby'
 
