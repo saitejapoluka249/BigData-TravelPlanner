@@ -2,7 +2,7 @@
 
 import os
 import uuid
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -34,6 +34,9 @@ async def update_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    if full_name is None and email is None and mobile_number is None and (profile_picture is None or not profile_picture.filename):
+        raise HTTPException(status_code= 400, detail= "No fields provided to update")
+
     if full_name is not None:
         current_user.full_name = full_name
     if email is not None:
