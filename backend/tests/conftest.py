@@ -1,5 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -8,6 +10,19 @@ from app.db.database import Base, get_db
 from app.api.v1.deps import get_current_user
 from app.db.models import User
 from app.core.security import get_password_hash
+
+
+@pytest.fixture(autouse=True)
+async def clear_cache():
+    try:
+        FastAPICache.init(InMemoryBackend(), prefix="test-cache")
+    except Exception:
+        pass
+    yield
+    try:
+        await FastAPICache.clear()
+    except Exception:
+        pass
 
 # In-memory database -- created and destroyed post each test
 TEST_DATABASE_URL = "sqlite:///./test.db"
