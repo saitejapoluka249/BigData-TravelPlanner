@@ -97,3 +97,7 @@ async def startup():
 @app.get("/")
 def root():
     return {"message": "API is operational", "status": "ok"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
