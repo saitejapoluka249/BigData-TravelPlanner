@@ -35,39 +35,11 @@ export default function TripMap({ mapData }: TripMapProps) {
       protomaps_basemaps.namedFlavor("light"),
       { lang: "en" }
     );
-    const validatedLayers = rawLayers.map((layer: any) => {
-      if (
-        layer.type === "line" &&
-        layer.paint &&
-        typeof layer.paint["line-color"] === "undefined"
-      ) {
-        return { ...layer, paint: { ...layer.paint, "line-color": "#cccccc" } };
-      }
-      return layer;
-    });
-
-    const STYLES: any = {
-      protomapsBuild: {
-        version: 8,
-        name: "Protomaps Latest Build",
-        sprite: "https://protomaps.github.io/basemaps-assets/sprites/v4/light",
-        glyphs:
-          "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
-        sources: {
-          protomaps: {
-            type: "vector",
-            url: `https://api.protomaps.com/tiles/v3.json?key=${process.env.NEXT_PUBLIC_PROTOMAPS_KEY}`,
-            attribution:
-              '<a href="https://protomaps.com" target="_blank">Protomaps |</a> <a href="https://openstreetmap.org">OpenStreetMap ©</a>',
-          },
-        },
-        layers: validatedLayers,
-      },
-    };
 
     mapRef.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: STYLES.protomapsBuild,
+      // This single link replaces everything and includes all the labels/names
+      style: `https://api.protomaps.com/styles/v5/light/en.json?key=${process.env.NEXT_PUBLIC_PROTOMAPS_KEY}`,
       center: [-105.2705, 40.015],
       zoom: 15,
       attributionControl: false,
