@@ -66,3 +66,7 @@ steps:
 images:
   - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/backend:latest"
   - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/frontend:latest"
+
+# ADD THESE LINES AT THE BOTTOM:
+options:
+  logging: CLOUD_LOGGING_ONLY
