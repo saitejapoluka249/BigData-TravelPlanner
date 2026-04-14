@@ -24,6 +24,18 @@ def upload_to_gcs(file: UploadFile, bucket_name: str, destination_blob_name: str
     # Return the public URL
     return f"https://storage.googleapis.com/{bucket_name}/{destination_blob_name}"
 
+# --- RESTORED GET ENDPOINT (Required for the frontend to show current details) ---
+@router.get("/me")
+def get_profile(current_user: User = Depends(get_current_user)):
+    return {
+        "username": current_user.email, 
+        "full_name": current_user.full_name,
+        "email": current_user.email,
+        "mobile_number": current_user.mobile_number,
+        "profile_picture_url": current_user.profile_picture_url
+    }
+
+# --- UPDATED PUT ENDPOINT (Handles the new Cloud Storage uploads) ---
 @router.put("/me")
 async def update_profile(
     full_name: str = Form(None),
