@@ -9,6 +9,17 @@ locals {
     amadeus-client-secret = var.amadeus_client_secret
     weather-api-key       = var.weather_api_key
     bdc-api-key           = var.bdc_api_key
+    
+    # --- NEW KEYS ADDED ---
+    smtp-username         = var.smtp_username
+    smtp-password         = var.smtp_password
+    from-email            = var.from_email
+    openai-api-key        = var.openai_api_key
+    mapbox-api-key        = var.mapbox_api_key
+    duffel-api-key        = var.duffel_api_key
+    geoapify-api-key      = var.geoapify_api_key
+    serpapi-key           = var.serpapi_key
+    airlabs-api-key       = var.airlabs_api_key
   }
 }
 

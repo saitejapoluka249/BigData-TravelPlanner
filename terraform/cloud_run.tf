@@ -1,6 +1,5 @@
 # ---------------------------------------------------------------------------
 # Cloud Run — FastAPI Backend
-# Mirrors docker-compose backend service: port 8000, reads from .env
 # ---------------------------------------------------------------------------
 resource "google_cloud_run_v2_service" "backend" {
   name     = "${var.environment}-travel-backend"
@@ -10,7 +9,6 @@ resource "google_cloud_run_v2_service" "backend" {
   template {
     service_account = google_service_account.backend_sa.email
 
-    # Connect to VPC so the backend can reach Redis and Cloud SQL
     vpc_access {
       connector = google_vpc_access_connector.connector.id
       egress    = "PRIVATE_RANGES_ONLY"
@@ -31,16 +29,13 @@ resource "google_cloud_run_v2_service" "backend" {
 
       resources {
         limits = {
-          cpu    = "1"
-          memory = "512Mi"
+          cpu    = "2"
+          memory = "2048Mi"
         }
-        cpu_idle          = true  # only use CPU during requests (cost saving)
-        startup_cpu_boost = true  # faster cold starts
+        cpu_idle          = true
+        startup_cpu_boost = true
       }
 
-      # ---------------------------------------------------------------------------
-      # Non-sensitive env vars — set directly
-      # ---------------------------------------------------------------------------
       env {
         name  = "ENVIRONMENT"
         value = var.environment
@@ -51,10 +46,9 @@ resource "google_cloud_run_v2_service" "backend" {
         value = "redis://${google_redis_instance.cache.host}:${google_redis_instance.cache.port}"
       }
 
-      # TODO hardcoded for now :(
       env {
         name  = "BACKEND_CORS_ORIGINS"
-        value = "[\"https://prod-travel-frontend-n2yisjprxa-uc.a.run.app\"]"
+        value = "[\"*\"]" # Wildcard for now to avoid CORS errors during testing
       }
 
       env {
@@ -62,9 +56,7 @@ resource "google_cloud_run_v2_service" "backend" {
         value = google_storage_bucket.profile_images.name
       }
 
-      # ---------------------------------------------------------------------------
-      # Sensitive env vars — pulled from Secret Manager at runtime
-      # ---------------------------------------------------------------------------
+      # --- SENSITIVE ENV VARS ---
       env {
         name = "SECRET_KEY"
         value_source {
@@ -116,6 +108,96 @@ resource "google_cloud_run_v2_service" "backend" {
       }
 
       env {
+        name = "SMTP_USERNAME"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["smtp-username"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "SMTP_PASSWORD"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["smtp-password"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "FROM_EMAIL"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["from-email"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "OPENAI_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["openai-api-key"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "MAPBOX_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["mapbox-api-key"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "DUFFEL_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["duffel-api-key"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "GEOAPIFY_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["geoapify-api-key"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "SERPAPI_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["serpapi-key"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "AIRLABS_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.backend_secrets["airlabs-api-key"].secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
         name = "POSTGRES_URL"
         value_source {
           secret_key_ref {
@@ -125,7 +207,6 @@ resource "google_cloud_run_v2_service" "backend" {
         }
       }
 
-      # Startup probe — wait for FastAPI to be ready before sending traffic
       startup_probe {
         http_get {
           path = "/health"
@@ -156,7 +237,6 @@ resource "google_cloud_run_v2_service" "backend" {
   ]
 }
 
-# Allow unauthenticated requests to the backend (frontend calls it publicly)
 resource "google_cloud_run_v2_service_iam_member" "backend_public" {
   project  = var.project_id
   location = var.region
@@ -167,7 +247,6 @@ resource "google_cloud_run_v2_service_iam_member" "backend_public" {
 
 # ---------------------------------------------------------------------------
 # Cloud Run — Next.js Frontend
-# Mirrors docker-compose frontend service: port 3000
 # ---------------------------------------------------------------------------
 resource "google_cloud_run_v2_service" "frontend" {
   name     = "${var.environment}-travel-frontend"
@@ -192,14 +271,20 @@ resource "google_cloud_run_v2_service" "frontend" {
 
       resources {
         limits = {
-          cpu    = "1"
-          memory = "512Mi"
+          cpu    = "2"       # Increased CPU for boot performance
+          memory = "2048Mi"  # Increased RAM to prevent OOM
         }
         cpu_idle          = true
         startup_cpu_boost = true
       }
 
-      # Backend URL used by Next.js server-side components
+      # REQUIRED: Tell the browser where to find the backend
+      env {
+        name  = "NEXT_PUBLIC_API_URL"
+        value = "${google_cloud_run_v2_service.backend.uri}/api/v1"
+      }
+
+      # Backend URL for server-side requests
       env {
         name  = "BACKEND_URL"
         value = "${google_cloud_run_v2_service.backend.uri}/api/v1"
@@ -215,9 +300,9 @@ resource "google_cloud_run_v2_service" "frontend" {
           path = "/"
           port = 3000
         }
-        initial_delay_seconds = 10
-        period_seconds        = 5
-        failure_threshold     = 12
+        initial_delay_seconds = 30 # Give Next.js more time to boot
+        period_seconds        = 10
+        failure_threshold     = 10
       }
     }
   }
@@ -228,7 +313,6 @@ resource "google_cloud_run_v2_service" "frontend" {
   ]
 }
 
-# Allow unauthenticated access to the frontend
 resource "google_cloud_run_v2_service_iam_member" "frontend_public" {
   project  = var.project_id
   location = var.region

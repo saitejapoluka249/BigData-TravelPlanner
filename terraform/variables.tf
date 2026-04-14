@@ -19,9 +19,6 @@ variable "environment" {
   }
 }
 
-# ---------------------------------------------------------------------------
-# Container images
-# ---------------------------------------------------------------------------
 variable "backend_image" {
   description = "Full Artifact Registry URI for the backend image"
   type        = string
@@ -32,48 +29,6 @@ variable "frontend_image" {
   type        = string
 }
 
-# ---------------------------------------------------------------------------
-# Secrets
-# ---------------------------------------------------------------------------
-variable "secret_key" {
-  description = "JWT secret key (SECRET_KEY in backend .env)"
-  type        = string
-  sensitive   = true
-}
-
-variable "amadeus_client_id" {
-  description = "Amadeus API client ID"
-  type        = string
-  sensitive   = true
-}
-
-variable "amadeus_client_secret" {
-  description = "Amadeus API client secret"
-  type        = string
-  sensitive   = true
-}
-
-variable "weather_api_key" {
-  description = "OpenWeather API key"
-  type        = string
-  sensitive   = true
-}
-
-variable "bdc_api_key" {
-  description = "Big Data Cloud API key"
-  type        = string
-  sensitive   = true
-}
-
-variable "db_password" {
-  description = "Cloud SQL PostgreSQL password"
-  type        = string
-  sensitive   = true
-}
-
-# ---------------------------------------------------------------------------
-# Tuning
-# ---------------------------------------------------------------------------
 variable "backend_min_instances" {
   description = "Minimum Cloud Run instances for backend (0 = scale to zero)"
   type        = number
@@ -90,4 +45,83 @@ variable "db_tier" {
   description = "Cloud SQL machine tier"
   type        = string
   default     = "db-f1-micro"
+}
+
+# ---------------------------------------------------------------------------
+# Secrets
+# ---------------------------------------------------------------------------
+variable "secret_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "amadeus_client_id" {
+  type      = string
+  sensitive = true
+}
+
+variable "amadeus_client_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "weather_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "bdc_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
+
+# --- NEW KEYS ADDED ---
+variable "smtp_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "smtp_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "from_email" {
+  type      = string
+  sensitive = true
+}
+
+variable "openai_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "mapbox_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "duffel_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "geoapify_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "serpapi_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "airlabs_api_key" {
+  type      = string
+  sensitive = true
 }

@@ -1,17 +1,18 @@
-# Use Node.js 20 to satisfy Next.js >=20.9.0 requirement
 FROM node:20-alpine
-
 WORKDIR /app
 
-# Copy package files first to leverage Docker layer caching
+# 1. Accept the URL during the build process
+ARG NEXT_PUBLIC_API_URL
+# 2. Make it available to Next.js while it compiles
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# Install dependencies
 COPY package.json package-lock.json* ./
 RUN npm install
 
-# Copy the rest of the frontend code
+# Copy code and BUILD
 COPY . .
+RUN npm run build
 
-# Expose port 3000 for local access
 EXPOSE 3000
-
-# Run Next.js in development mode with 0.0.0.0 binding so it is accessible outside the container
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]

@@ -1,83 +1,68 @@
-substitutions:
-  _REGION: us-central1
-  _PROJECT_ID: wanderplanus
-  _ENVIRONMENT: prod
-  _REPO: travel-app
-
 steps:
-  # ── 1. Build backend image ───────────────────────────────────────────────
+  # 1. Build the Backend
   - name: "gcr.io/cloud-builders/docker"
-    id: build-backend
     args:
-      - build
-      - -t
-      - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/backend:latest"
-      - -f
-      - backend/Dockerfile
-      - ./backend
-    waitFor: ["-"]
+      - "build"
+      - "--platform"
+      - "linux/amd64"
+      - "-t"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/backend:latest"
+      - "-f"
+      - "backend/Dockerfile"
+      - "./backend"
 
-  # ── 2. Build frontend image ──────────────────────────────────────────────
+  # 2. Push the Backend
   - name: "gcr.io/cloud-builders/docker"
-    id: build-frontend
     args:
-      - build
-      - --build-arg
-      - NEXT_PUBLIC_API_URL=https://prod-travel-backend-n2yisjprxa-uc.a.run.app/api/v1
-      - -t
-      - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/frontend:latest"
-      - -f
-      - frontend/Dockerfile
-      - ./frontend
+      - "push"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/backend:latest"
 
-  # ── 3. Push backend image ────────────────────────────────────────────────
+  # 3. Build the Frontend (Injecting the backend URL)
   - name: "gcr.io/cloud-builders/docker"
-    id: push-backend
     args:
-      - push
-      - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/backend:latest"
-    waitFor: ["build-backend"]
+      - "build"
+      - "--platform"
+      - "linux/amd64"
+      - "--build-arg"
+      - "NEXT_PUBLIC_API_URL=https://prod-travel-backend-q575tyursq-uc.a.run.app/api/v1"
+      - "-t"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/frontend:latest"
+      - "-f"
+      - "frontend/Dockerfile"
+      - "./frontend"
 
-  # ── 4. Push frontend image ───────────────────────────────────────────────
+  # 4. Push the Frontend
   - name: "gcr.io/cloud-builders/docker"
-    id: push-frontend
     args:
-      - push
-      - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/frontend:latest"
-    waitFor: ["build-frontend"]
+      - "push"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/frontend:latest"
 
-  # ── 5. Deploy backend to Cloud Run ──────────────────────────────────────
+  # 5. Update Cloud Run Backend
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    id: deploy-backend
     entrypoint: gcloud
     args:
-      - run
-      - services
-      - update
-      - "${_ENVIRONMENT}-travel-backend"
-      - --image=${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/backend:latest
-      - --region=${_REGION}
-      - --platform=managed
-    waitFor: ["push-backend"]
+      - "run"
+      - "services"
+      - "update"
+      - "prod-travel-backend"
+      - "--region"
+      - "us-central1"
+      - "--image"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/backend:latest"
 
-  # ── 6. Deploy frontend to Cloud Run ─────────────────────────────────────
+  # 6. Update Cloud Run Frontend
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    id: deploy-frontend
     entrypoint: gcloud
     args:
-      - run
-      - services
-      - update
-      - "${_ENVIRONMENT}-travel-frontend"
-      - --image=${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/frontend:latest
-      - --region=${_REGION}
-      - --platform=managed
-    waitFor: ["push-frontend", "deploy-backend"]
-
-options:
-  logging: CLOUD_LOGGING_ONLY
-  machineType: E2_MEDIUM
+      - "run"
+      - "services"
+      - "update"
+      - "prod-travel-frontend"
+      - "--region"
+      - "us-central1"
+      - "--image"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/frontend:latest"
 
 images:
-  - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/backend:latest"
-  - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/frontend:latest"
+  - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/backend:latest"
+  - "us-central1-docker.pkg.dev/$PROJECT_ID/travel-app/frontend:latest"

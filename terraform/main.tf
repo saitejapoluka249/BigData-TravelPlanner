@@ -11,7 +11,7 @@ terraform {
   # Create this bucket ONCE manually before first `terraform init`:
   #   gcloud storage buckets create gs://YOUR_PROJECT_ID-tfstate --location=us-central1
   backend "gcs" {
-    bucket = "wanderplanus-tfstate"
+    bucket = "wanderplanus-tfstate-big-data-project-spring-2026"
     prefix = "terraform/state"
   }
 }
