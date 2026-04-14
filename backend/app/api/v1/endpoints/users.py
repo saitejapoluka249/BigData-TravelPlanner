@@ -1,29 +1,28 @@
 # backend/app/api/v1/endpoints/users.py
 
-import os
 import uuid
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
+from google.cloud import storage # Import GCS client
 
 from app.db.database import get_db
 from app.db.models import User
 from app.api.v1.deps import get_current_user
+from app.core.config import settings
 
 router = APIRouter()
 
-# Ensure the upload directory exists
-os.makedirs("static/profiles", exist_ok=True)
+def upload_to_gcs(file: UploadFile, bucket_name: str, destination_blob_name: str):
+    """Uploads a file to the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
 
-@router.get("/me")
-def get_profile(current_user: User = Depends(get_current_user)):
-    return {
-        # FIX: Map username to the user's email, or remove it if not needed
-        "username": current_user.email, 
-        "full_name": current_user.full_name,
-        "email": current_user.email,
-        "mobile_number": current_user.mobile_number,
-        "profile_picture_url": current_user.profile_picture_url
-    }
+    # Upload from the file stream
+    blob.upload_from_file(file.file, content_type=file.content_type)
+    
+    # Return the public URL
+    return f"https://storage.googleapis.com/{bucket_name}/{destination_blob_name}"
 
 @router.put("/me")
 async def update_profile(
@@ -35,7 +34,7 @@ async def update_profile(
     current_user: User = Depends(get_current_user)
 ):
     if full_name is None and email is None and mobile_number is None and (profile_picture is None or not profile_picture.filename):
-        raise HTTPException(status_code= 400, detail= "No fields provided to update")
+        raise HTTPException(status_code=400, detail="No fields provided to update")
 
     if full_name is not None:
         current_user.full_name = full_name
@@ -45,17 +44,21 @@ async def update_profile(
         current_user.mobile_number = mobile_number
 
     if profile_picture and profile_picture.filename:
-        # Generate a unique filename to prevent overwrites
+        # Generate a unique filename for GCS
         ext = profile_picture.filename.split('.')[-1]
-        filename = f"{uuid.uuid4()}.{ext}"
-        filepath = f"static/profiles/{filename}"
+        filename = f"profiles/{uuid.uuid4()}.{ext}"
         
-        # Save the file locally
-        with open(filepath, "wb") as f:
-            f.write(await profile_picture.read())
-            
-        # Save the URL path in the database
-        current_user.profile_picture_url = f"/static/profiles/{filename}"
+        try:
+            # Upload to GCS and get the public URL
+            public_url = upload_to_gcs(
+                profile_picture, 
+                settings.GCS_BUCKET_NAME, 
+                filename
+            )
+            # Save the full GCS URL in the database
+            current_user.profile_picture_url = public_url
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload to cloud storage: {str(e)}")
 
     db.commit()
     db.refresh(current_user)

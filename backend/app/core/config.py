@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     SERPAPI_KEY: str = "" 
     AIRLABS_API_KEY: str = ""
 
+    GCS_BUCKET_NAME: str = ""
+
     # Use SettingsConfigDict for Pydantic V2 instead of the inner Config class
     model_config = SettingsConfigDict(
         env_file=".env", 
