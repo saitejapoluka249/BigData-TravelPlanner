@@ -33,3 +33,7 @@ jobs:
             -e REDIS_URL=redis://redis:6379 \
             backend python -m pytest -m smoke tests
         working-directory: ./backend
+
+      - name: Cleanup Containers
+        if: always() # Ensure cleanup runs even if tests fail
+        run: docker compose down -v
