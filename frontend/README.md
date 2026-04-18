@@ -12,7 +12,7 @@ The frontend for WanderPlan is a highly responsive, modern web application built
 
 ## 🔑 Environment Variables (`.env.local`)
 
-Create a `.env.local` file in the `frontend/` directory. The frontend requires variables to know where to send its API requests and how to render maps.
+Create a `.env.frontend` file in the `frontend/` directory. The frontend requires variables to know where to send its API requests and how to render maps.
 
 # Backend API Connection
 

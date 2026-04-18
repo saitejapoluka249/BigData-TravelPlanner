@@ -11,7 +11,7 @@ This is the backend service for WanderPlan US. Built with FastAPI, it serves as 
 
 ## 🔑 Environment Variables (`.env`)
 
-Create a `.env` file in the `backend/` directory. Based on `app/core/config.py`, you will need to configure your API keys for external services.
+Create a `.env.backend` file in the `backend/` directory. Based on `app/core/config.py`, you will need to configure your API keys for external services.
 
 env
 

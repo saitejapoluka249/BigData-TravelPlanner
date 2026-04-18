@@ -308,7 +308,7 @@ export default function Sidebar({
 
   return (
     <>
-      <div className="w-[20vw] lg:w-[20vw] min-w-[300px] h-[100dvh] bg-theme-text border-r border-theme-secondary/20 flex flex-col font-sans text-theme-bg">
+      <div className="w-[20vw] lg:w-[20vw] min-w-[350px] h-[100dvh] bg-theme-text border-r border-theme-secondary/20 flex flex-col font-sans text-theme-bg">
         <div className="p-4 border-b border-theme-secondary/20 shadow-md flex justify-between items-start shrink-0">
           <div>
             <div className="text-2xl font-extrabold text-theme-bg tracking-tight flex items-center gap-2">
